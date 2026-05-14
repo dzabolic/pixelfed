@@ -4,8 +4,9 @@
     $user = \Auth::user();
     if (!$user) return response()->json(['error' => 'Não autorizado'], 401);
 
+    // Agora usando o ID de usuário correto ($user->id)
     $highlight = \App\Models\Highlight::firstOrCreate([
-        'user_id' => $user->profile->id,
+        'user_id' => $user->id, 
         'title' => $request->input('title', 'Meus Destaques')
     ]);
 
@@ -13,20 +14,20 @@
     return response()->json(['success' => true]);
 });
 
-// Rota de segurança para teste rápido
+// Rota de teste corrigida
 \Route::get('/teste-destaque', function () {
     $user = \Auth::user();
     if (!$user) return "Rosa, logue no site primeiro!";
     
     try {
         \App\Models\Highlight::create([
-            'user_id' => $user->profile->id,
+            'user_id' => $user->id, // A correção está aqui!
             'title' => 'Teste de RPG',
             'cover_path' => 'https://images.unsplash.com/photo-1519074063912-ad25b57b6d17?auto=format&fit=crop&q=80&w=200'
         ]);
-        return "Sucesso! O banco de dados está funcionando.";
+        return "Sucesso total! Agora vá no seu perfil e veja a mágica.";
     } catch (\Exception $e) {
-        return "Erro no banco: " . $e->getMessage();
+        return "Erro: " . $e->getMessage();
     }
 });
 Route::domain(config('pixelfed.domain.app'))->middleware(['validemail', 'twofactor', 'localization'])->group(function () {
