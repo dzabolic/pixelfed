@@ -233,6 +233,7 @@ Route::domain(config('pixelfed.domain.app'))->middleware(['validemail', 'twofact
         Route::get('rs/{id}', 'StoryController@remoteStory');
         Route::get('stories/new', 'StoryController@compose');
         Route::get('my/story', 'StoryController@iRedirect');
+        Route::get('stories/viewers/{id}', 'StoryController@getViewers')->name('story.viewers');
         Route::get('web/profile/_/{id}', 'InternalApiController@remoteProfile');
         Route::get('web/post/_/{profileId}/{statusid}', 'InternalApiController@remoteStatus');
 
@@ -526,4 +527,6 @@ Route::domain(config('pixelfed.domain.app'))->middleware(['validemail', 'twofact
     Route::get('@{username}@{domain}', 'SiteController@legacyWebfingerRedirect');
     Route::get('@{username}', 'SiteController@legacyProfileRedirect');
     Route::get('{username}', 'ProfileController@show');
+    Route::get('stories/{username}/{id}', 'StoryController@show')->name('story.show');
 });
+
