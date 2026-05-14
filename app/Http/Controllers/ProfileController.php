@@ -34,15 +34,6 @@ class ProfileController extends Controller
         }
 
         // redirect authed users to Metro 2.0
-        if ($request->user() && ! $request->filled('carousel')) {
-            // unless they force static view
-            if (! $request->has('fs') || $request->input('fs') != '1') {
-                $pid = AccountService::usernameToId($username);
-                if ($pid) {
-                    return redirect('/i/web/profile/'.$pid);
-                }
-            }
-        }
 
         $user = $this->getCachedUser($username);
 
