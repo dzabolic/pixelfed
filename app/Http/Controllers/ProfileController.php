@@ -11,6 +11,7 @@ use App\Services\FollowerService;
 use App\Services\StatusService;
 use App\Status;
 use App\Story;
+use App\Models\Highlight;
 use App\Transformer\ActivityPub\ProfileTransformer;
 use App\User;
 use App\UserFilter;
@@ -98,11 +99,14 @@ class ProfileController extends Controller
                 ],
             ];
 
-            if ($carousel) {
-                return view('profile.show_carousel', compact('profile', 'settings'));
-            }
+            // Busca os destaques do dono do perfil
+$highlights = Highlight::whereUserId($user->id)->get();
 
-            return view('profile.show', compact('profile', 'settings'));
+if ($carousel) {
+    return view('profile.show_carousel', compact('profile', 'settings', 'highlights'));
+}
+
+return view('profile.show', compact('profile', 'settings', 'highlights'));
         } else {
             $key = 'profile:settings:'.$user->id;
             $ttl = now()->addHours(6);
@@ -140,11 +144,14 @@ class ProfileController extends Controller
                     'list' => $settings->show_profile_followers,
                 ],
             ];
-            if ($carousel) {
-                return view('profile.show_carousel', compact('profile', 'settings'));
-            }
+            // Busca os destaques do dono do perfil
+$highlights = Highlight::whereUserId($user->id)->get();
 
-            return view('profile.show', compact('profile', 'settings'));
+if ($carousel) {
+    return view('profile.show_carousel', compact('profile', 'settings', 'highlights'));
+}
+
+return view('profile.show', compact('profile', 'settings', 'highlights'));
         }
     }
 
