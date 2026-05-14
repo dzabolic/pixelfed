@@ -139,3 +139,9 @@ public function highlights()
     // Apontamos para o Model que criamos na pasta Models
     return $this->hasMany(\App\Models\Highlight::class)->orderBy('created_at', 'desc');
 }
+
+// Conecta o usuário aos seus destaques
+public function highlights()
+{
+    return $this->hasMany(\App\Models\Highlight::class)->orderBy('created_at', 'desc');
+}
