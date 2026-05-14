@@ -138,16 +138,12 @@ class DirectMessageController extends Controller
     {
         $this->validate($request, [
             'to_id' => 'required',
-            'message' => 'required|string|min:1|max:500',
+            'message' => 'required|string|min:1|max:5000',
             'type' => 'required|in:text,emoji',
         ]);
 
         $user = $request->user();
         abort_if($user->has_roles && ! UserRoleService::can('can-direct-message', $user->id), 403, 'Invalid permissions for this action');
-        if (! $user->is_admin) {
-            if ((bool) ! config_cache('instance.allow_new_account_dms')) {
-                abort_if($user->created_at->gt(now()->subHours(72)), 400, 'You need to wait a bit before you can DM another account');
-            }
         }
         $profile = $user->profile;
         $recipient = Profile::where('id', '!=', $profile->id)->findOrFail($request->input('to_id'));
@@ -284,7 +280,7 @@ class DirectMessageController extends Controller
                     $query->where('from_id', $uid)->where('to_id', $pid);
                 })
                 ->orderBy('id', 'asc')
-                ->take(8)
+                ->take(50)
                 ->get()
                 ->reverse();
         } elseif ($max_id) {
@@ -295,7 +291,7 @@ class DirectMessageController extends Controller
                     $query->where('from_id', $uid)->where('to_id', $pid);
                 })
                 ->orderBy('id', 'desc')
-                ->take(8)
+                ->take(50)
                 ->get();
         } else {
             $res = $query->where(function ($query) use ($pid, $uid) {
@@ -304,7 +300,7 @@ class DirectMessageController extends Controller
                 $query->where('from_id', $uid)->where('to_id', $pid);
             })
                 ->orderBy('id', 'desc')
-                ->take(8)
+                ->take(50)
                 ->get();
         }
 
@@ -585,7 +581,7 @@ class DirectMessageController extends Controller
             ->whereNotIn('id', $blocked)
             ->where('username', 'like', '%'.$q.'%')
             ->orderBy('domain')
-            ->limit(8)
+            ->limit(50)
             ->get()
             ->map(function ($r) {
                 $acct = AccountService::get($r->id);
