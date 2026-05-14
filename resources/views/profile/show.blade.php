@@ -60,23 +60,86 @@
         @endif
     </div>
 
-    <!-- ESQUELETO DO MODAL (ESTILIZADO) -->
-    <div id="highlightModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 9999; align-items: center; justify-content: center;">
-        <div style="background: #121212; width: 90%; max-width: 380px; border-radius: 12px; padding: 25px; border: 1px solid #333; text-align: center;">
-            <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 25px;">Novo Destaque</h3>
-            <div style="position: relative; width: 90px; height: 90px; margin: 0 auto 20px; cursor: pointer;" onclick="document.getElementById('coverInput').click()">
-                <div id="coverPreview" style="width: 90px; height: 90px; border-radius: 50%; border: 1px dashed #444; display: flex; align-items: center; justify-content: center; background: #1a1a1a; overflow: hidden;">
-                    <i class="fas fa-camera" style="color: #8e8e8e; font-size: 24px;"></i>
+<!-- ESQUELETO DO CRIADOR DE DESTAQUES (MODAL EXPANDIDO) -->
+<div id="highlightModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 9999; align-items: center; justify-content: center;">
+    <div style="background: #121212; width: 90%; max-width: 400px; border-radius: 12px; padding: 20px; border: 1px solid #333; max-height: 90vh; overflow-y: auto;">
+        <h3 style="font-size: 16px; font-weight: 600; text-align: center; margin-bottom: 20px;">Novo Destaque</h3>
+        
+        <!-- Passo 1: Capa e Nome -->
+        <div style="text-align: center; margin-bottom: 20px;">
+            <div style="position: relative; width: 80px; height: 80px; margin: 0 auto 15px; cursor: pointer;" onclick="document.getElementById('coverInput').click()">
+                <div id="coverPreview" style="width: 80px; height: 80px; border-radius: 50%; border: 1px dashed #444; display: flex; align-items: center; justify-content: center; background: #1a1a1a; overflow: hidden;">
+                    <i class="fas fa-camera" style="color: #8e8e8e; font-size: 20px;"></i>
                 </div>
                 <input type="file" id="coverInput" style="display: none;" accept="image/*" onchange="previewImage(this)">
             </div>
-            <input type="text" id="highlightName" placeholder="Nome do destaque" style="width: 100%; background: #000; border: 1px solid #333; color: #fff; padding: 12px; border-radius: 8px; margin-bottom: 25px; outline: none; text-align: center;">
-            <div style="display: flex; gap: 12px;">
-                <button onclick="document.getElementById('highlightModal').style.display = 'none'" style="flex: 1; background: transparent; border: 1px solid #333; color: #fff; padding: 12px; border-radius: 8px; font-size: 14px; font-weight: 600;">Cancelar</button>
-                <button style="flex: 1; background: #fff; border: none; color: #000; padding: 12px; border-radius: 8px; font-size: 14px; font-weight: 700;">Salvar</button>
-            </div>
+            <input type="text" id="highlightName" placeholder="Nome do destaque" style="width: 100%; background: #000; border: 1px solid #333; color: #fff; padding: 10px; border-radius: 8px; font-size: 14px; outline: none; text-align: center;">
+        </div>
+
+        <hr style="border: 0; border-top: 1px solid #262626; margin: 20px 0;">
+
+        <!-- Passo 2: Seleção do Arquivo de Stories -->
+        <h4 style="font-size: 13px; color: #a8a8a8; margin-bottom: 15px;">Selecionar Stories do Arquivo</h4>
+        <div id="storyArchive" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; max-height: 250px; overflow-y: auto; padding-right: 5px;">
+            <!-- Simulação de Stories do Arquivo -->
+            @foreach($profile->statuses->take(12) as $story)
+                <div style="aspect-ratio: 9/16; background: #1a1a1a; position: relative; border-radius: 4px; cursor: pointer;" onclick="toggleStorySelect(this)">
+                    <img src="{{ $story->mediaUrl() }}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 4px; opacity: 0.6;">
+                    <div class="check-indicator" style="position: absolute; top: 5px; right: 5px; width: 18px; height: 18px; border: 2px solid #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-check" style="font-size: 10px; display: none;"></i>
+                    </div>
+                </div>
+            @endforeach
+        </div>
+
+        <div style="display: flex; gap: 10px; margin-top: 25px;">
+            <button onclick="closeHighlightModal()" style="flex: 1; background: transparent; border: 1px solid #333; color: #fff; padding: 12px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">Cancelar</button>
+            <button id="finalSaveBtn" style="flex: 1; background: #fff; border: none; color: #000; padding: 12px; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer;">Salvar</button>
         </div>
     </div>
+</div>
+
+<script>
+    // Seleção de Stories no Arquivo
+    function toggleStorySelect(el) {
+        const check = el.querySelector('.fas.fa-check');
+        const img = el.querySelector('img');
+        if (check.style.display === 'none') {
+            check.style.display = 'block';
+            img.style.opacity = '1';
+            el.style.border = '2px solid #fff';
+        } else {
+            check.style.display = 'none';
+            img.style.opacity = '0.6';
+            el.style.border = 'none';
+        }
+    }
+
+    // Função de Salvar (Lógica para o bucket rpgram-media)
+    document.getElementById('finalSaveBtn').onclick = function() {
+        const name = document.getElementById('highlightName').value;
+        if(!name) { alert('Dê um nome ao seu destaque.'); return; }
+        
+        this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
+        this.disabled = true;
+
+        // Simulando envio para o servidor/S3
+        setTimeout(() => {
+            alert('Destaque "' + name + '" salvo com sucesso no rpgram-media!');
+            location.reload(); // Recarrega para exibir o novo destaque
+        }, 1500);
+    };
+
+    // Função para ver o destaque e abrir o menu de 3 pontinhos
+    function viewHighlight(id) {
+        // Aqui abriria o player de stories
+        // Se for o dono:
+        const isOwner = {{ (Auth::check() && Auth::id() == $profile->user_id) ? 'true' : 'false' }};
+        if(isOwner) {
+            console.log("Opções de Editar/Excluir liberadas nos 3 pontinhos");
+        }
+    }
+</script>
 
     <!-- Abas e Grid -->
     <div style="display: flex; justify-content: space-around; border-top: 1px solid #262626; padding: 12px 0;">
