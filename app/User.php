@@ -127,11 +127,6 @@ class User extends Authenticatable implements OAuthenticatable
         return AvatarService::get($this->profile_id);
     }
 
-    public function routeNotificationForExpo()
-    {
-        return $this->expo_token;
-    }
-    
 public function routeNotificationForExpo()
     {
         return $this->expo_token;
