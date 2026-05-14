@@ -16,25 +16,38 @@ $metaDescription = \App\Services\AccountService::getMetaDescription($profile->id
 		</div>
 @endif
 
-<!-- Bloco de Destaques com o ID para o script encontrar -->
-<!-- Moldura dos Destaques (O Script vai preencher isso) -->
-<div id="rpgram-highlights" style="display: none; margin-bottom: 20px;">
-    @if(isset($highlights) && $highlights->count() > 0)
-        <div class="highlights-container" style="display: flex; overflow-x: auto; padding: 10px 0; gap: 15px; scrollbar-width: none; justify-content: flex-start; border-bottom: 1px solid #dbdbdb; margin-bottom: 10px;">
+<div id="rpgram-highlights" style="display: none; margin: 20px 0; border-bottom: 1px solid #333; padding-bottom: 20px;">
+    <div style="display: flex; overflow-x: auto; gap: 15px; padding: 0 10px; scrollbar-width: none; align-items: flex-start;">
+        
+        <!-- Botão de Novo Destaque (Apenas para o dono do perfil) -->
+        @if(Auth::check() && Auth::id() == $profile->user_id)
+            <div style="flex: 0 0 auto; text-align: center; width: 85px;">
+                <a href="#" onclick="alert('Abrir modal de criação...'); return false;" style="text-decoration: none;">
+                    <div style="width: 77px; height: 77px; border-radius: 50%; border: 1px solid #dbdbdb; display: flex; align-items: center; justify-content: center; margin: 0 auto 8px; background: transparent;">
+                        <span style="font-size: 30px; color: #dbdbdb; font-weight: 200;">+</span>
+                    </div>
+                    <span style="font-size: 12px; color: #efefef; font-weight: 400; display: block;">Novo</span>
+                </a>
+            </div>
+        @endif
+
+        <!-- Exibição dos Destaques Existentes -->
+        @if(isset($highlights))
             @foreach($highlights as $highlight)
-                <div class="highlight-item" style="text-align: center; min-width: 85px;">
-                    <a href="/p/highlights/{{ $highlight->id }}" style="text-decoration: none; color: #262626;">
-                        <div class="highlight-circle" style="width: 77px; height: 77px; border-radius: 50%; border: 1px solid #dbdbdb; padding: 3px; margin: 0 auto 8px; background: #fff;">
-                            <img src="{{ $highlight->cover_path ?? '/storage/default-highlight.png' }}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
+                <div style="flex: 0 0 auto; text-align: center; width: 85px;">
+                    <a href="/p/highlights/{{ $highlight->id }}" style="text-decoration: none;">
+                        <div style="width: 77px; height: 77px; border-radius: 50%; border: 2px solid #dbdbdb; padding: 3px; margin: 0 auto 8px; background: #000;">
+                            <img src="{{ $highlight->cover_path ?? 'https://images.unsplash.com/photo-1519074063912-ad25b57b6d17?auto=format&fit=crop&q=80&w=150' }}" 
+                                 style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block;">
                         </div>
-                        <span style="font-size: 12px; font-weight: 600; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 80px;">
+                        <span style="font-size: 12px; color: #efefef; font-weight: 400; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
                             {{ $highlight->title }}
                         </span>
                     </a>
                 </div>
             @endforeach
-        </div>
-    @endif
+        @endif
+    </div>
 </div>
 
 <profile profile-id="{{$profile->id}}" profile-username="{{$profile->username}}" :profile-settings="{{json_encode($settings)}}" profile-layout="metro"></profile>
