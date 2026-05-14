@@ -92,7 +92,7 @@ class StoryComposeController extends Controller
             if ($localFs) {
                 $videoPath = storage_path('app/'.$path);
             } else {
-                $tempPath = sys_get_temp_dir().'/'.Str::random(40).'.mp4';
+                $tempPath = '/tmp/'.Str::random(40).'.mp4';
                 file_put_contents($tempPath, $disk->get($path));
                 $videoPath = $tempPath;
             }
