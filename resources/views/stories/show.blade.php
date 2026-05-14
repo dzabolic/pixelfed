@@ -1,12 +1,12 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="story-viewer-wrapper" style="background: #000; height: 100vh; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden;">
+<div class="story-viewer-wrapper" style="background: #000; height: 100vh; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
     
     <!-- Barra de Progresso Superior -->
     <div style="position: absolute; top: 10px; width: 95%; display: flex; gap: 5px; z-index: 10;">
         <div style="flex: 1; height: 2px; background: rgba(255,255,255,0.5); border-radius: 2px;">
-            <div style="width: 50%; height: 100%; background: #fff;"></div>
+            <div style="width: 100%; height: 100%; background: #fff;"></div>
         </div>
     </div>
 
@@ -27,23 +27,30 @@
         $isOwner = Auth::check() && Auth::id() == $story->profile->user_id;
     @endphp
 
-    <!-- FOOTER: DINÂMICO (IMAGENS 1 E 2) -->
+    <!-- FOOTER: DINÂMICO -->
     <div style="position: absolute; bottom: 0; width: 100%; padding: 20px; background: linear-gradient(transparent, rgba(0,0,0,0.8));">
         
         @if($isOwner)
-            <!-- VISÃO DO DONO (Imagem 2) -->
-            <div onclick="toggleViewerList()" style="display: flex; align-items: center; cursor: pointer; width: fit-content;">
-                <div style="display: flex; flex-direction: column; align-items: center; color: #fff;">
+            <!-- VISÃO DO DONO -->
+            <div style="display: flex; align-items: center; gap: 30px;">
+                <div onclick="toggleViewerList()" style="display: flex; flex-direction: column; align-items: center; color: #fff; cursor: pointer;">
                     <i class="fas fa-chart-line" style="font-size: 20px; margin-bottom: 5px;"></i>
                     <span style="font-size: 12px; font-weight: 600;">Atividade</span>
                 </div>
-                <div style="margin-left: 20px; color: #fff; display: flex; align-items: center; gap: 5px;">
+
+                <!-- NOVO BOTÃO: DESTAQUE -->
+                <div onclick="toggleHighlightArchive()" style="display: flex; flex-direction: column; align-items: center; color: #fff; cursor: pointer;">
+                    <i class="far fa-star" style="font-size: 20px; margin-bottom: 5px;"></i>
+                    <span style="font-size: 12px; font-weight: 600;">Destaque</span>
+                </div>
+                
+                <div style="margin-left: auto; color: #fff; display: flex; align-items: center; gap: 5px;">
                     <i class="fas fa-eye" style="font-size: 14px;"></i>
                     <span style="font-size: 14px;">{{ $story->view_count }}</span>
                 </div>
             </div>
         @else
-            <!-- VISÃO DO VISITANTE (Imagem 1) -->
+            <!-- VISÃO DO VISITANTE -->
             <div style="display: flex; align-items: center; gap: 15px;">
                 <input type="text" placeholder="Enviar mensagem..." style="flex: 1; background: transparent; border: 1px solid rgba(255,255,255,0.5); border-radius: 25px; padding: 10px 20px; color: #fff; outline: none; font-size: 14px;">
                 <i class="far fa-heart" style="color: #fff; font-size: 24px; cursor: pointer;"></i>
@@ -52,22 +59,12 @@
         @endif
     </div>
 
-    <!-- LISTA DE VISUALIZADORES: BOTTOM SHEET (IMAGEM 3) -->
     @if($isOwner)
-    <div id="viewerList" style="display: none; position: fixed; bottom: 0; left: 0; width: 100%; height: 70vh; background: #121212; border-top-left-radius: 15px; border-top-right-radius: 15px; z-index: 100; color: #fff; transition: transform 0.3s ease-in-out;">
-        <div style="text-align: center; padding: 10px;" onclick="toggleViewerList()">
-            <div style="width: 40px; height: 4px; background: #333; border-radius: 2px; margin: 0 auto;"></div>
-        </div>
-        
-        <div style="display: flex; justify-content: space-around; padding: 15px; border-bottom: 1px solid #222;">
-            <i class="fas fa-chart-bar" style="color: #3897f0;"></i>
-            <i class="fas fa-users" style="color: #fff;"></i>
-            <i class="fas fa-trash" style="color: #fff;"></i>
-        </div>
-
-        <div style="padding: 15px; font-weight: 700; font-size: 14px; color: #a8a8a8;">Pessoas que viram seu story</div>
-
-        <div class="viewers-scroll" style="overflow-y: auto; height: calc(70vh - 120px); padding: 0 15px;">
+    <!-- GAVETÃO 1: LISTA DE VISUALIZADORES -->
+    <div id="viewerList" class="bottom-drawer">
+        <div class="drawer-handle" onclick="toggleViewerList()"></div>
+        <div style="padding: 15px; font-weight: 700; font-size: 14px; color: #a8a8a8; text-align: center;">Pessoas que viram seu story</div>
+        <div class="viewers-scroll" style="overflow-y: auto; height: calc(70vh - 100px); padding: 0 15px;">
             @foreach($story->views as $view)
             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px;">
                 <div style="display: flex; align-items: center; gap: 12px; position: relative;">
@@ -80,37 +77,112 @@
                         @endif
                     </div>
                     <div>
-                        <div style="font-size: 14px; font-weight: 600;">{{ $view->profile->username }}</div>
+                        <div style="font-size: 14px; font-weight: 600; color: #fff;">{{ $view->profile->username }}</div>
                         <div style="font-size: 13px; color: #8e8e8e;">{{ $view->profile->name }}</div>
                     </div>
                 </div>
-                <div style="display: flex; gap: 15px; align-items: center;">
-                    <i class="fas fa-ellipsis-h" style="color: #8e8e8e;"></i>
-                    <i class="far fa-paper-plane" style="color: #fff;"></i>
-                </div>
             </div>
+            @endforeach
+        </div>
+    </div>
+
+    <!-- GAVETÃO 2: ARQUIVO DE STORIES PARA DESTAQUE -->
+    <div id="highlightArchive" class="bottom-drawer">
+        <div class="drawer-handle" onclick="toggleHighlightArchive()"></div>
+        <div style="padding: 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #222;">
+            <span style="font-weight: 700;">Selecionar para Destaque</span>
+            <button onclick="saveToHighlight()" style="background: #3897f0; border: none; color: #fff; padding: 5px 15px; border-radius: 4px; font-weight: 600; font-size: 13px;">Concluir</button>
+        </div>
+        
+        <div style="overflow-y: auto; height: calc(70vh - 100px); display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; padding: 2px;">
+            {{-- Busca todos os stories do perfil (Ativos e Arquivados) --}}
+            @foreach(\App\Story::where('profile_id', $story->profile_id)->latest()->get() as $archive)
+                <div class="archive-item" onclick="selectStory(this, {{ $archive->id }})" style="position: relative; aspect-ratio: 9/16; cursor: pointer;">
+                    <img src="{{ url(\Storage::url($archive->path)) }}" style="width: 100%; height: 100%; object-fit: cover; opacity: 0.8;">
+                    <div class="check-overlay" style="position: absolute; inset: 0; display: none; background: rgba(56, 151, 240, 0.3); border: 3px solid #3897f0;">
+                        <i class="fas fa-check-circle" style="position: absolute; top: 10px; right: 10px; color: #fff;"></i>
+                    </div>
+                </div>
             @endforeach
         </div>
     </div>
     @endif
 </div>
 
+<style>
+    .bottom-drawer { 
+        display: none; 
+        position: fixed; 
+        bottom: 0; 
+        left: 0; 
+        width: 100%; 
+        height: 70vh; 
+        background: #121212; 
+        border-top-left-radius: 15px; 
+        border-top-right-radius: 15px; 
+        z-index: 100; 
+        color: #fff; 
+        transform: translateY(100%);
+        transition: transform 0.3s ease-in-out; 
+    }
+    .drawer-handle { width: 40px; height: 4px; background: #333; border-radius: 2px; margin: 10px auto; cursor: pointer; }
+    .viewers-scroll::-webkit-scrollbar { display: none; }
+    .archive-item.selected .check-overlay { display: block !important; }
+    .archive-item.selected img { opacity: 1 !important; }
+</style>
+
 <script>
+    let selectedStories = [];
+
     function toggleViewerList() {
-        const list = document.getElementById('viewerList');
-        if (list.style.display === 'none' || list.style.display === '') {
-            list.style.display = 'block';
-            setTimeout(() => { list.style.transform = 'translateY(0)'; }, 10);
+        const el = document.getElementById('viewerList');
+        animateDrawer(el);
+    }
+
+    function toggleHighlightArchive() {
+        const el = document.getElementById('highlightArchive');
+        animateDrawer(el);
+    }
+
+    function animateDrawer(el) {
+        if (el.style.display === 'none' || el.style.display === '') {
+            el.style.display = 'block';
+            setTimeout(() => { el.style.transform = 'translateY(0)'; }, 10);
         } else {
-            list.style.transform = 'translateY(100%)';
-            setTimeout(() => { list.style.display = 'none'; }, 300);
+            el.style.transform = 'translateY(100%)';
+            setTimeout(() => { el.style.display = 'none'; }, 300);
         }
     }
-</script>
 
-<style>
-    /* Estilo para esconder a barra de scroll mas manter a funcionalidade */
-    .viewers-scroll::-webkit-scrollbar { display: none; }
-    .viewers-scroll { -ms-overflow-style: none; scrollbar-width: none; }
-</style>
+    function selectStory(element, id) {
+        element.classList.toggle('selected');
+        if (selectedStories.includes(id)) {
+            selectedStories = selectedStories.filter(sid => sid !== id);
+        } else {
+            selectedStories.push(id);
+        }
+    }
+
+    function saveToHighlight() {
+        if (selectedStories.length === 0) return alert("Selecione pelo menos um story!");
+
+        fetch('/api/v1/rpgram/highlight', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({
+                story_id: selectedStories[0], // O primeiro ID vira a base
+                story_ids: selectedStories,   // O array completo para o sync
+                title: 'Meus Destaques'
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            alert('Destaque atualizado com sucesso!');
+            toggleHighlightArchive();
+        });
+    }
+</script>
 @endsection
