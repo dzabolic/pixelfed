@@ -63,35 +63,37 @@ $metaDescription = \App\Services\AccountService::getMetaDescription($profile->id
 	@if(false == $settings['crawlable'] || $profile->remote_url)<meta name="robots" content="noindex, nofollow">@endif
 @endpush
 
-@push('scripts')<script type="text/javascript" src="{{ mix('js/profile.js') }}"></script>
-		<script type="text/javascript" defer>App.boot();</script>
+@push('scripts')
+<script type="text/javascript" src="{{ mix('js/profile.js') }}"></script>
+<script type="text/javascript" defer>App.boot();</script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Tenta encaixar os destaques várias vezes, caso o Vue demore a carregar
     let tentativas = 0;
     const interval = setInterval(function() {
         const highlights = document.getElementById('rpgram-highlights');
-        // No layout Metro, procuramos pela bio ou pela caixa de botões
+        
+        // Adicionamos o alvo '.p-3.border-bottom' que é comum no seu layout
         const target = document.querySelector('.profile-bio') || 
+                       document.querySelector('.p-3.border-bottom') ||
                        document.querySelector('.profile-header-info') || 
                        document.querySelector('.profile-buttons-wrapper');
         
         if (highlights && target) {
-            target.parentNode.insertBefore(highlights, target.nextSibling);
+            // Usa o comando 'after' que é mais simples: coloca DEPOIS do alvo
+            target.after(highlights);
             highlights.style.display = 'block';
             clearInterval(interval);
         }
         
         tentativas++;
+        // Se após 5 segundos não achar o lugar, ele aparece onde estiver para não sumir
         if (tentativas > 10 && highlights) {
-            // Se falhar 10 vezes, mostra no topo mesmo para não sumir
             highlights.style.display = 'block';
             clearInterval(interval);
         }
     }, 500);
 });
 </script>
-
 @endpush
 
 <style>
