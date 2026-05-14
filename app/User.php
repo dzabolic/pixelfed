@@ -118,23 +118,27 @@ class User extends Authenticatable implements OAuthenticatable
         return $this->hasMany(AccountInterstitial::class);
     }
 
-    public function avatarUrl()
+public function avatarUrl()
     {
         if (! $this->profile_id || $this->status) {
-            return config('app.url').'/storage/avatars/default.jpg';
+            // Verifica qual arquivo existe fisicamente
+            $pathPng = public_path('storage/avatars/default.png');
+            $extension = file_exists($pathPng) ? 'png' : 'jpg';
+            
+            return config('app.url')."/storage/avatars/default.{$extension}";
         }
 
         return AvatarService::get($this->profile_id);
     }
 
-public function routeNotificationForExpo()
+    public function routeNotificationForExpo()
     {
         return $this->expo_token;
     }
 
-    // Relacionamento: O usuário possui muitos destaques
+    // Relacionamento para os Destaques (Highlights)
     public function highlights()
     {
         return $this->hasMany(\App\Models\Highlight::class)->orderBy('created_at', 'desc');
     }
-}
+} 
