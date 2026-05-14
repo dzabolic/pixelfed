@@ -497,3 +497,18 @@ Route::domain(config('pixelfed.domain.app'))->middleware(['validemail', 'twofact
     Route::get('@{username}', 'SiteController@legacyProfileRedirect');
     Route::get('{username}', 'ProfileController@show');
 });
+use App\Models\Highlight;
+use Illuminate\Support\Facades\Route;
+
+Route::get('/teste-destaque', function () {
+    $user = Auth::user();
+    if(!$user) return "Você precisa estar logado!";
+
+    Highlight::create([
+        'user_id' => $user->profile->id,
+        'title' => 'Minha Primeira Missão',
+        'cover_path' => 'https://via.placeholder.com/150' // Uma imagem temporária
+    ]);
+
+    return "Destaque de teste criado com sucesso! Volte ao seu perfil e atualize a página.";
+});
