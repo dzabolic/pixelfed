@@ -198,7 +198,7 @@
 							</span>
 						</span>
 						<input type="file" id="uploadMedia" class="d-none" name="uploadMedia" accept="image/jpeg,image/png,image/gif,video/mp4" >
-						<span class="text-muted font-weight-bold">{{replyText.length}}/600</span>
+						<span class="text-muted font-weight-bold">{{replyText.length}}/5000</span>
 					</p>
 				</div>
 			</div>
