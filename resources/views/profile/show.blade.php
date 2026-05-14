@@ -1,120 +1,86 @@
-@extends('layouts.app', [
-    'title' => $profile->name . ' (@' . $acct . ') - Pixelfed',
-    'ogTitle' => $profile->name . ' (@' . $acct . ')',
-    'ogType' => 'profile'
-])
-
-@php
-$acct = $profile->username . '@' . config('pixelfed.domain.app');
-$metaDescription = \App\Services\AccountService::getMetaDescription($profile->id);
-@endphp
+@extends('layouts.app')
 
 @section('content')
-@if (session('error'))
-		<div class="alert alert-danger text-center font-weight-bold mb-0">
-				{{ session('error') }}
-		</div>
-@endif
+<div id="rpgram-custom-profile" style="background-color: #000; color: #fff; min-height: 100vh; font-family: -apple-system, BlinkMacSystemFont, sans-serif;">
+    
+    <!-- Cabeçalho (Avatar + Status) -->
+    <header style="padding: 16px; display: flex; flex-direction: column;">
+        <div style="display: flex; align-items: center; margin-bottom: 12px;">
+            <div style="margin-right: 28px;">
+                <div style="width: 80px; height: 80px; border-radius: 50%; border: 1px solid #333; padding: 2px;">
+                    <img src="{{ $profile->avatarUrl() }}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
+                </div>
+            </div>
+            <div style="display: flex; flex-grow: 1; justify-content: space-around; text-align: center;">
+                <div><strong style="display: block; font-size: 16px;">{{ $profile->statuses_count ?? 0 }}</strong> <span style="font-size: 13px; color: #a8a8a8;">posts</span></div>
+                <div><strong style="display: block; font-size: 16px;">{{ $profile->followers_count ?? 0 }}</strong> <span style="font-size: 13px; color: #a8a8a8;">seguidores</span></div>
+                <div><strong style="display: block; font-size: 16px;">{{ $profile->following_count ?? 0 }}</strong> <span style="font-size: 13px; color: #a8a8a8;">seguindo</span></div>
+            </div>
+        </div>
 
-<div id="rpgram-highlights" style="display: none; margin: 20px 0; border-bottom: 1px solid #333; padding-bottom: 20px;">
-    <div style="display: flex; overflow-x: auto; gap: 15px; padding: 0 10px; scrollbar-width: none; align-items: flex-start;">
-        
-        <!-- Botão de Novo Destaque (Apenas para o dono do perfil) -->
+        <!-- Bio e Nome (Fontes ajustadas para celular) -->
+        <div style="font-size: 14px; line-height: 18px; margin-bottom: 16px;">
+            <div style="font-weight: 600; margin-bottom: 2px;">{{ $profile->display_name }}</div>
+            <div style="white-space: pre-wrap;">{!! $profile->bio !!}</div>
+            @if($profile->website)
+                <a href="{{ $profile->website }}" target="_blank" style="color: #e0f1ff; text-decoration: none; font-weight: 500; display: block; margin-top: 4px;">{{ str_replace(['http://', 'https://'], '', $profile->website) }}</a>
+            @endif
+        </div>
+
+        <!-- Botões de Ação -->
+        <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+            @if(Auth::check() && Auth::id() == $profile->user_id)
+                <a href="{{ route('settings') }}" style="flex: 1; background: #333; color: #fff; text-align: center; padding: 7px 0; border-radius: 8px; font-size: 14px; font-weight: 600; text-decoration: none;">Editar perfil</a>
+                <a href="#" style="flex: 1; background: #333; color: #fff; text-align: center; padding: 7px 0; border-radius: 8px; font-size: 14px; font-weight: 600; text-decoration: none;">Compartilhar perfil</a>
+            @endif
+        </div>
+    </header>
+
+    <!-- Destaques (Highlights) com Scroll Lateral -->
+    <div class="highlights-row" style="display: flex; overflow-x: auto; padding: 0 16px 16px; gap: 14px; scrollbar-width: none;">
         @if(Auth::check() && Auth::id() == $profile->user_id)
-            <div style="flex: 0 0 auto; text-align: center; width: 85px;">
-                <a href="#" onclick="alert('Abrir modal de criação...'); return false;" style="text-decoration: none;">
-                    <div style="width: 77px; height: 77px; border-radius: 50%; border: 1px solid #dbdbdb; display: flex; align-items: center; justify-content: center; margin: 0 auto 8px; background: transparent;">
-                        <span style="font-size: 30px; color: #dbdbdb; font-weight: 200;">+</span>
-                    </div>
-                    <span style="font-size: 12px; color: #efefef; font-weight: 400; display: block;">Novo</span>
-                </a>
+            <div style="flex: 0 0 auto; text-align: center; width: 68px;">
+                <div style="width: 62px; height: 62px; border-radius: 50%; border: 1px solid #333; display: flex; align-items: center; justify-content: center; margin-bottom: 5px;">
+                    <span style="font-size: 26px; font-weight: 200; color: #fff;">+</span>
+                </div>
+                <span style="font-size: 11px;">Novo</span>
             </div>
         @endif
 
-        <!-- Exibição dos Destaques Existentes -->
         @if(isset($highlights))
-            @foreach($highlights as $highlight)
-                <div style="flex: 0 0 auto; text-align: center; width: 85px;">
-                    <a href="/p/highlights/{{ $highlight->id }}" style="text-decoration: none;">
-                        <div style="width: 77px; height: 77px; border-radius: 50%; border: 2px solid #dbdbdb; padding: 3px; margin: 0 auto 8px; background: #000;">
-                            <img src="{{ $highlight->cover_path ?? 'https://images.unsplash.com/photo-1519074063912-ad25b57b6d17?auto=format&fit=crop&q=80&w=150' }}" 
-                                 style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block;">
-                        </div>
-                        <span style="font-size: 12px; color: #efefef; font-weight: 400; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                            {{ $highlight->title }}
-                        </span>
-                    </a>
+            @foreach($highlights as $h)
+                <div style="flex: 0 0 auto; text-align: center; width: 68px;">
+                    <div style="width: 62px; height: 62px; border-radius: 50%; border: 1px solid #333; padding: 2px; margin-bottom: 5px;">
+                        <img src="{{ $h->cover_path }}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
+                    </div>
+                    <span style="font-size: 11px; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ $h->title }}</span>
                 </div>
             @endforeach
         @endif
     </div>
+
+    <!-- Abas de Navegação -->
+    <div style="display: flex; justify-content: space-around; border-top: 1px solid #262626; padding: 12px 0;">
+        <i class="fas fa-th" style="color: #fff; font-size: 20px;"></i>
+        <i class="fas fa-play-circle" style="color: #8e8e8e; font-size: 20px;"></i>
+        <i class="fas fa-user-tag" style="color: #8e8e8e; font-size: 20px;"></i>
+    </div>
+
+    <!-- Grid de Fotos Proporção 4:5 -->
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; padding-bottom: 50px;">
+        @foreach($profile->statuses as $status)
+            <div style="aspect-ratio: 4/5; background: #1a1a1a; overflow: hidden;">
+                <img src="{{ $status->mediaUrl() }}" style="width: 100%; height: 100%; object-fit: cover;">
+            </div>
+        @endforeach
+    </div>
 </div>
 
-<profile profile-id="{{$profile->id}}" profile-username="{{$profile->username}}" :profile-settings="{{json_encode($settings)}}" profile-layout="metro"></profile>
-
-<noscript>
-	<div class="container">
-		<p class="pt-5 text-center lead">Please enable javascript to view this content.</p>
-	</div>
-</noscript>
-
-@endsection
-
-@push('meta')<meta name="description" content="{{$metaDescription}}">
-    <meta property="og:description" content="{{$metaDescription}}">
-    <meta property="og:image" content="{{$profile->avatarUrl()}}">
-    <meta property="og:image:width" content="200">
-    <meta property="og:image:height" content="200">
-    <meta property="twitter:card" content="summary">
-    <meta property="profile:username" content="{{$acct}}">
-	<link href="{{$profile->permalink('.atom')}}" rel="alternate" title="{{$profile->username}} on Pixelfed" type="application/atom+xml">
-	<link href="{{$profile->permalink()}}" rel="alternate" type="application/activity+json">
-    <meta name="application-name" content="Pixelfed">
-    <meta name="generator" content="pixelfed">
-    @if($profile->website)<link href="{{$profile->website}}" rel="me" type="text/html">
-@endif
-	@if(false == $settings['crawlable'] || $profile->remote_url)<meta name="robots" content="noindex, nofollow">@endif
-@endpush
-
-@push('scripts')
-<script type="text/javascript" src="{{ mix('js/profile.js') }}"></script>
-<script type="text/javascript" defer>App.boot();</script>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    let tentativas = 0;
-    const interval = setInterval(function() {
-        const highlights = document.getElementById('rpgram-highlights');
-        
-        // No seu layout Metro, o alvo ideal é a div que contém as informações do perfil
-        const target = document.querySelector('.profile-info') || 
-                       document.querySelector('.profile-header-info') ||
-                       document.querySelector('.profile-bio').parentElement;
-        
-        if (highlights && target) {
-            // Isso coloca os destaques exatamente após a bio e antes dos posts
-            target.after(highlights); 
-            highlights.style.display = 'block';
-            clearInterval(interval);
-        }
-        
-        tentativas++;
-        if (tentativas > 20) { // Tenta por 10 segundos
-            if (highlights) highlights.style.display = 'block';
-            clearInterval(interval);
-        }
-    }, 500);
-});
-</script>
-@endpush
-
 <style>
-    /* Isso força o container de destaques a ter uma estética de RPG se quiser, 
-       ou apenas garante que ele não quebre o layout metro */
-    .highlights-container::-webkit-scrollbar {
-        display: none;
-    }
-    .highlight-circle:hover {
-        transform: scale(1.05);
-        transition: transform 0.2s ease;
-    }
+    body { background-color: #000 !important; }
+    .highlights-row::-webkit-scrollbar { display: none; }
+    /* Remove a tela obrigatória dos stories */
+    .story-interstitial, .story-profile-overlay, .story-blur-bg { display: none !important; }
+    .story-content-wrapper { filter: none !important; opacity: 1 !important; }
 </style>
+@endsection
