@@ -1,5 +1,34 @@
 <?php
+// Rota para o botão dos Stories funcionar
+\Route::post('/api/v1/rpgram/highlight', function (\Illuminate\Http\Request $request) {
+    $user = \Auth::user();
+    if (!$user) return response()->json(['error' => 'Não autorizado'], 401);
 
+    $highlight = \App\Models\Highlight::firstOrCreate([
+        'user_id' => $user->profile->id,
+        'title' => $request->input('title', 'Meus Destaques')
+    ]);
+
+    $highlight->stories()->syncWithoutDetaching([$request->input('story_id')]);
+    return response()->json(['success' => true]);
+});
+
+// Rota de segurança para teste rápido
+\Route::get('/teste-destaque', function () {
+    $user = \Auth::user();
+    if (!$user) return "Rosa, logue no site primeiro!";
+    
+    try {
+        \App\Models\Highlight::create([
+            'user_id' => $user->profile->id,
+            'title' => 'Teste de RPG',
+            'cover_path' => 'https://images.unsplash.com/photo-1519074063912-ad25b57b6d17?auto=format&fit=crop&q=80&w=200'
+        ]);
+        return "Sucesso! O banco de dados está funcionando.";
+    } catch (\Exception $e) {
+        return "Erro no banco: " . $e->getMessage();
+    }
+});
 Route::domain(config('pixelfed.domain.app'))->middleware(['validemail', 'twofactor', 'localization'])->group(function () {
     Route::get('/', 'SiteController@home')->name('timeline.personal');
     Route::redirect('/home', '/')->name('home');
