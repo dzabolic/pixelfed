@@ -57,6 +57,15 @@ class Story extends Model
         return $this->hasMany(StoryView::class);
     }
 
+    /**
+ * Relacionamento: Um story pode pertencer a vários destaques.
+ */
+public function highlights()
+{
+    // Isso completa a ligação com a tabela 'highlight_story' que criamos
+    return $this->belongsToMany(\App\Models\Highlight::class, 'highlight_story', 'story_id', 'highlight_id');
+}
+    
     public function seen($pid = false)
     {
         return StoryView::whereStoryId($this->id)
