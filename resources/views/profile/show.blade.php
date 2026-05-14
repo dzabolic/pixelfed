@@ -17,11 +17,23 @@ $metaDescription = \App\Services\AccountService::getMetaDescription($profile->id
 @endif
 
 <!-- Bloco de Destaques com o ID para o script encontrar -->
-<div id="rpgram-highlights" class="container" style="background: red; padding: 15px; color: white; font-weight: bold; text-align: center; margin-bottom: 20px;">
-    @if(isset($highlights))
-        O CÓDIGO ESTÁ FUNCIONANDO! Destaques encontrados: {{ $highlights->count() }}
-    @else
-        ERRO: A VARIÁVEL AINDA NÃO CHEGOU AQUI.
+<!-- Moldura dos Destaques (O Script vai preencher isso) -->
+<div id="rpgram-highlights" style="display: none; margin-bottom: 20px;">
+    @if(isset($highlights) && $highlights->count() > 0)
+        <div class="highlights-container" style="display: flex; overflow-x: auto; padding: 10px 0; gap: 15px; scrollbar-width: none; justify-content: flex-start; border-bottom: 1px solid #dbdbdb; margin-bottom: 10px;">
+            @foreach($highlights as $highlight)
+                <div class="highlight-item" style="text-align: center; min-width: 85px;">
+                    <a href="/p/highlights/{{ $highlight->id }}" style="text-decoration: none; color: #262626;">
+                        <div class="highlight-circle" style="width: 77px; height: 77px; border-radius: 50%; border: 1px solid #dbdbdb; padding: 3px; margin: 0 auto 8px; background: #fff;">
+                            <img src="{{ $highlight->cover_path ?? '/storage/default-highlight.png' }}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
+                        </div>
+                        <span style="font-size: 12px; font-weight: 600; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 80px;">
+                            {{ $highlight->title }}
+                        </span>
+                    </a>
+                </div>
+            @endforeach
+        </div>
     @endif
 </div>
 
