@@ -360,7 +360,7 @@
 		data() {
 			return {
 				config: window.App.config,
-				hideAvatars: true,
+				hideAvatars: false,
 				hideTimestamps: false,
 				largerText: false,
 				autoRefresh: false,
@@ -410,7 +410,7 @@
 				this.min_id = Math.min(...mids);
 				this.mutedNotifications = d.muted;
 				this.markAsRead();
-				//this.messagePoll();
+				this.messagePoll();
 				setTimeout(function() {
 					let objDiv = document.querySelector('.dm-wrapper');
 					objDiv.scrollTop = objDiv.scrollHeight;
@@ -690,18 +690,32 @@
 				})
 			},
 
-			messagePoll() {
-				let self = this;
-				setInterval(function() {
-					axios.get('/api/direct/thread', {
-						params: {
-							pid: self.accountId,
-							min_id: self.thread.messages[self.thread.messages.length - 1].id
-						}
-					}).then(res => {
-					});
-				}, 5000);
-			},
+messagePoll() {
+    let self = this;
+    setInterval(function() {
+        axios.get('/api/direct/thread', {
+            params: {
+                pid: self.accountId,
+                min_id: self.max_id
+            }
+        }).then(res => {
+            let newMessages = res.data.messages;
+            if(newMessages && newMessages.length) {
+                let cids = self.thread.messages.map(m => m.id);
+                let filtered = newMessages.filter(m => cids.indexOf(m.id) == -1);
+                if(filtered.length) {
+                    self.thread.messages.push(...filtered);
+                    let mids = self.thread.messages.map(m => m.id);
+                    self.max_id = Math.max(...mids);
+                    setTimeout(function() {
+                        var objDiv = document.querySelector('.dm-wrapper');
+                        objDiv.scrollTop = objDiv.scrollHeight;
+                    }, 300);
+                }
+            }
+        });
+    }, 3000);
+},
 
 			showOptions() {
 				this.page = 'options';
