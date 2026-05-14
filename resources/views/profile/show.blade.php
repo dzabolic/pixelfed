@@ -205,5 +205,9 @@ document.getElementById('finalSaveBtn').onclick = function() {
 .stat-count:empty::before {
     content: "0";
 }
+
+    function closeHighlightModal() {
+        document.getElementById('highlightModal').style.display = 'none';
+    }
 </style>
 @endsection
