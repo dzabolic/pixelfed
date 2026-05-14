@@ -98,8 +98,8 @@ if ($story->type === 'video') {
         $videoPath = $tempPath;
     }
 
-    try {
-        $video = FFMpeg::open($videoPath);
+try {
+    $video = FFMpeg::fromDisk(config('filesystems.default'))->open($path);
         $duration = $video->getDurationInSeconds();
         $res['media_duration'] = $duration;
 
