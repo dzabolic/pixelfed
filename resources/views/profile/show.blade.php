@@ -3,7 +3,7 @@
 @section('content')
 <div id="rpgram-custom-profile" style="background-color: #000; color: #fff; min-height: 100vh; font-family: -apple-system, BlinkMacSystemFont, sans-serif;">
     
-    <!-- Cabeçalho: Avatar e Estatísticas -->
+    <!-- Cabeçalho: Avatar e Status -->
     <header style="padding: 16px; display: flex; flex-direction: column;">
         <div style="display: flex; align-items: center; margin-bottom: 12px;">
             <div style="margin-right: 28px;">
@@ -18,9 +18,9 @@
             </div>
         </div>
 
-        <!-- Nome em Negrito ACIMA da Bio -->
+        <!-- Nome em Negrito (Variável Ajustada) e Bio -->
         <div style="font-size: 13px; line-height: 17px; margin-bottom: 16px;">
-            <div style="font-weight: 700; font-size: 14px; margin-bottom: 2px;">{{ $profile->display_name }}</div>
+            <div style="font-weight: 700; font-size: 14px; margin-bottom: 2px;">{{ $profile->name ?? $profile->username }}</div>
             <div style="white-space: pre-wrap; color: #efefef;">{!! $profile->bio !!}</div>
         </div>
 
@@ -33,7 +33,7 @@
         </div>
     </header>
 
-    <!-- Destaques com Link de Criação Corrigido -->
+    <!-- Destaques -->
     <div class="highlights-row" style="display: flex; overflow-x: auto; padding: 0 16px 16px; gap: 14px; scrollbar-width: none;">
         @if(Auth::check() && Auth::id() == $profile->user_id)
             <div style="flex: 0 0 auto; text-align: center; width: 68px;">
@@ -73,7 +73,7 @@
         </a>
     </div>
 
-    <!-- Grade 4:5 Dinâmica (Posts, Reposts e Coleções) -->
+    <!-- Grade 4:5 Dinâmica -->
     <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; padding-bottom: 50px;">
         @php
             $tab = request('tab', 'posts');
@@ -104,23 +104,9 @@
 </div>
 
 <style>
-    /* Configurações Globais de Estética */
     body { background-color: #000 !important; }
     .highlights-row::-webkit-scrollbar { display: none; }
-
-    /* Remoção da Tela "View Profile" nos Stories */
-    .story-interstitial, 
-    .story-profile-overlay, 
-    .story-blur-bg, 
-    #story-view-profile-btn { 
-        display: none !important; 
-        visibility: hidden !important; 
-    }
-
-    /* Garantia de Stories Limpos e Nítidos */
-    .story-content-wrapper { 
-        filter: none !important; 
-        opacity: 1 !important; 
-    }
+    .story-interstitial, .story-profile-overlay, .story-blur-bg, #story-view-profile-btn { display: none !important; visibility: hidden !important; }
+    .story-content-wrapper { filter: none !important; opacity: 1 !important; }
 </style>
 @endsection
