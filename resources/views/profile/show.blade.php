@@ -85,23 +85,21 @@ document.addEventListener('DOMContentLoaded', function() {
     const interval = setInterval(function() {
         const highlights = document.getElementById('rpgram-highlights');
         
-        // Adicionamos o alvo '.p-3.border-bottom' que é comum no seu layout
-        const target = document.querySelector('.profile-bio') || 
-                       document.querySelector('.p-3.border-bottom') ||
-                       document.querySelector('.profile-header-info') || 
-                       document.querySelector('.profile-buttons-wrapper');
+        // No seu layout Metro, o alvo ideal é a div que contém as informações do perfil
+        const target = document.querySelector('.profile-info') || 
+                       document.querySelector('.profile-header-info') ||
+                       document.querySelector('.profile-bio').parentElement;
         
         if (highlights && target) {
-            // Usa o comando 'after' que é mais simples: coloca DEPOIS do alvo
-            target.after(highlights);
+            // Isso coloca os destaques exatamente após a bio e antes dos posts
+            target.after(highlights); 
             highlights.style.display = 'block';
             clearInterval(interval);
         }
         
         tentativas++;
-        // Se após 5 segundos não achar o lugar, ele aparece onde estiver para não sumir
-        if (tentativas > 10 && highlights) {
-            highlights.style.display = 'block';
+        if (tentativas > 20) { // Tenta por 10 segundos
+            if (highlights) highlights.style.display = 'block';
             clearInterval(interval);
         }
     }, 500);
