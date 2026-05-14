@@ -75,20 +75,28 @@ $metaDescription = \App\Services\AccountService::getMetaDescription($profile->id
 		<script type="text/javascript" defer>App.boot();</script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Espera um tempinho para o Vue carregar o perfil
-    setTimeout(function() {
+    // Tenta encaixar os destaques várias vezes, caso o Vue demore a carregar
+    let tentativas = 0;
+    const interval = setInterval(function() {
         const highlights = document.getElementById('rpgram-highlights');
-        // No Pixelfed, a classe da bio geralmente é 'profile-bio' ou fica dentro de 'profile-header'
-        const bio = document.querySelector('.profile-bio') || document.querySelector('.profile-header-info');
+        // No layout Metro, procuramos pela bio ou pela caixa de botões
+        const target = document.querySelector('.profile-bio') || 
+                       document.querySelector('.profile-header-info') || 
+                       document.querySelector('.profile-buttons-wrapper');
         
-        if (highlights && bio) {
-            bio.parentNode.insertBefore(highlights, bio.nextSibling);
-            highlights.style.display = 'block'; // Mostra os destaques no lugar certo
-        } else if (highlights) {
-            // Caso não ache a bio, mostra onde ele está mesmo para não sumir com o conteúdo
+        if (highlights && target) {
+            target.parentNode.insertBefore(highlights, target.nextSibling);
             highlights.style.display = 'block';
+            clearInterval(interval);
         }
-    }, 500); // Meio segundo de delay é suficiente
+        
+        tentativas++;
+        if (tentativas > 10 && highlights) {
+            // Se falhar 10 vezes, mostra no topo mesmo para não sumir
+            highlights.style.display = 'block';
+            clearInterval(interval);
+        }
+    }, 500);
 });
 </script>
 
