@@ -503,4 +503,20 @@ class StatusController extends Controller
 
         return response()->json(1);
     }
+
+    public function createHighlight(Request $request)
+    {
+        $highlight = new \App\Models\Highlight();
+        $highlight->user_id = auth()->id();
+        $highlight->profile_id = auth()->user()->profile->id;
+        $highlight->title = $request->input('title');
+        // Pega o primeiro item selecionado para ser a capa temporária
+        $highlight->cover_path = \App\Status::find($request->input('items')[0])->mediaUrl();
+        $highlight->save();
+
+        // Conecta os stories selecionados ao destaque
+        $highlight->statuses()->attach($request->input('items'));
+
+        return response()->json(['status' => 'success']);
+    }
 }
