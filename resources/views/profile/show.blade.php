@@ -12,7 +12,7 @@
     <header style="padding: 16px 16px 0; display: flex; flex-direction: column;">
         <div style="display: flex; align-items: center; margin-bottom: 12px;">
             <div style="margin-right: 28px;">
-                <div style="width: 80px; height: 80px; border-radius: 50%; border: 1px solid #333; padding: 2px;">
+                <div class="{{ $profile->has_stories ? 'story-ring' : '' }}" style="width: 80px; height: 80px; border-radius: 50%; border: {{ $profile->has_stories ? '2px solid #d62976' : '1px solid #333' }}; padding: 2px;">
                     <img src="{{ $profile->avatarUrl() }}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
                 </div>
             </div>
@@ -48,11 +48,12 @@
             </div>
         @endif
         
-        @if(isset($highlights))
-            @foreach($highlights as $h)
-                <div style="flex: 0 0 auto; text-align: center; width: 68px;">
+{{-- Exibição dos Destaques Reais conectados ao seu perfil --}}
+        @if($profile->user && $profile->user->highlights->count() > 0)
+            @foreach($profile->user->highlights as $h)
+                <div style="flex: 0 0 auto; text-align: center; width: 68px; cursor: pointer;" onclick="viewHighlight({{ $h->id }})">
                     <div style="width: 62px; height: 62px; border-radius: 50%; border: 1px solid #333; padding: 2px; margin-bottom: 5px;">
-                        <img src="{{ method_exists($h, 'coverUrl') ? $h->coverUrl() : $h->cover_path }}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
+                        <img src="{{ $h->cover_url ?? '/storage/avatars/default.png' }}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
                     </div>
                     <span style="font-size: 11px; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ $h->title }}</span>
                 </div>
@@ -116,18 +117,37 @@
     }
 
     // Função de Salvar (Lógica para o bucket rpgram-media)
-    document.getElementById('finalSaveBtn').onclick = function() {
+document.getElementById('finalSaveBtn').onclick = function() {
         const name = document.getElementById('highlightName').value;
+        const selectedStories = Array.from(document.querySelectorAll('.check-indicator i[style*="display: block"]'))
+                                     .map(el => el.closest('[data-id]').dataset.id);
+
         if(!name) { alert('Dê um nome ao seu destaque.'); return; }
+        if(selectedStories.length === 0) { alert('Selecione pelo menos um story.'); return; }
         
         this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
         this.disabled = true;
 
-        // Simulando envio para o servidor/S3
-        setTimeout(() => {
-            alert('Destaque "' + name + '" salvo com sucesso no rpgram-media!');
-            location.reload(); // Recarrega para exibir o novo destaque
-        }, 1500);
+        // Envio real para o servidor
+        fetch('/i/highlights/create', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+            },
+            body: JSON.stringify({ title: name, items: selectedStories })
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert('Destaque criado com sucesso!');
+            location.reload();
+        })
+        .catch(error => {
+            console.error('Erro:', error);
+            alert('Erro ao salvar. Verifique o console.');
+            this.innerHTML = 'Salvar';
+            this.disabled = false;
+        });
     };
 
     // Função para ver o destaque e abrir o menu de 3 pontinhos
