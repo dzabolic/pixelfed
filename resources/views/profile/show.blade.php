@@ -77,10 +77,23 @@
 </div>
 
 <style>
+    /* Fundo preto e organização dos destaques */
     body { background-color: #000 !important; }
     .highlights-row::-webkit-scrollbar { display: none; }
-    /* Remove a tela obrigatória dos stories */
-    .story-interstitial, .story-profile-overlay, .story-blur-bg { display: none !important; }
-    .story-content-wrapper { filter: none !important; opacity: 1 !important; }
+
+    /* Remove a tela 'View Profile' e o fundo embaçado nos stories */
+    .story-interstitial, 
+    .story-profile-overlay, 
+    .story-blur-bg, 
+    #story-view-profile-btn { 
+        display: none !important; 
+        visibility: hidden !important; 
+    }
+
+    /* Garante que o story apareça nítido e sem filtros na hora */
+    .story-content-wrapper { 
+        filter: none !important; 
+        opacity: 1 !important; 
+    }
 </style>
 @endsection
