@@ -168,7 +168,7 @@ class StoryController extends StoryComposeController
 
         return response()->json($stories, 200, [], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
     }
-
+    
     public function viewed(Request $request)
     {
         abort_if(! (bool) config_cache('instance.stories.enabled') || ! $request->user(), 404);
@@ -242,35 +242,40 @@ class StoryController extends StoryComposeController
         return redirect("/stories/{$username}");
     }
 
-    public function viewers(Request $request)
+        public function show(Request $request, $username, $id)
+    {
+        abort_if(! (bool) config_cache('instance.stories.enabled'), 404);
+
+        // Busca o story com o perfil, visualizações e reações de uma vez só
+        $story = Story::with(['profile', 'views.profile', 'reactions'])
+            ->whereActive(true)
+            ->findOrFail($id);
+
+        return view('stories.show', compact('story'));
+    }
+    
+public function getViewers(Request $request, $id)
     {
         abort_if(! (bool) config_cache('instance.stories.enabled') || ! $request->user(), 404);
 
-        $this->validate($request, [
-            'sid' => 'required|string',
-        ]);
+        $story = Story::findOrFail($id);
 
-        $user = $request->user();
-        if ($user->has_roles && ! UserRoleService::can('can-use-stories', $user->id)) {
-            return response()->json([]);
-        }
+        // Segurança: só o dono do story pode ver a lista (Imagem 3)
+        abort_if($request->user()->profile_id != $story->profile_id, 403);
 
-        $pid = $request->user()->profile_id;
-        $sid = $request->input('sid');
-
-        $story = Story::whereProfileId($pid)
-            ->whereActive(true)
-            ->findOrFail($sid);
-
+        // Busca quem viu o story e o horário (created_at)
         $viewers = StoryView::whereStoryId($story->id)
+            ->with('profile')
             ->latest()
-            ->simplePaginate(10)
-            ->map(function ($view) {
-                return AccountService::get($view->profile_id);
-            })
-            ->values();
+            ->get();
 
-        return response()->json($viewers, 200, [], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+        // Busca os IDs de quem curtiu para colocar o coração no avatar
+        $reactions = StoryReaction::whereStoryId($story->id)
+            ->where('reaction_type', 'like')
+            ->pluck('profile_id')
+            ->toArray();
+
+        return view('stories.viewers', compact('viewers', 'reactions', 'story'));
     }
 
     public function remoteStory(Request $request, $id)
