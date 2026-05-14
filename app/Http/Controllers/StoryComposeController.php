@@ -87,35 +87,36 @@ class StoryComposeController extends Controller
             'media_type' => $story->type,
         ];
 
-        if ($story->type === 'video') {
+if ($story->type === 'video') {
 
-            if ($localFs) {
-                $videoPath = storage_path('app/'.$path);
-            } else {
-                $tempPath = '/tmp/'.Str::random(40).'.mp4';
-                file_put_contents($tempPath, $disk->get($path));
-                $videoPath = $tempPath;
-            }
+    if ($localFs) {
+        $videoPath = storage_path('app/'.$path);
+    } else {
+        $tempPath = '/tmp/'.Str::random(40).'.mp4';
+        $disk->download($story->path);
+        file_put_contents($tempPath, $disk->get($path));
+        $videoPath = $tempPath;
+    }
 
-            try {
-                $video = FFMpeg::open($videoPath);
-                $duration = $video->getDurationInSeconds();
-                $res['media_duration'] = $duration;
+    try {
+        $video = FFMpeg::open($videoPath);
+        $duration = $video->getDurationInSeconds();
+        $res['media_duration'] = $duration;
 
-                if ($duration > 500) {
-                    $disk->delete($story->path);
-                    $story->delete();
+        if ($duration > 500) {
+            $disk->delete($story->path);
+            $story->delete();
 
-                    return response()->json([
-                        'message' => 'Video duration cannot exceed 60 seconds',
-                    ], 422);
-                }
-            } finally {
-                if (! $localFs && isset($tempPath) && file_exists($tempPath)) {
-                    unlink($tempPath);
-                }
-            }
+            return response()->json([
+                'message' => 'Video duration cannot exceed 60 seconds',
+            ], 422);
         }
+    } finally {
+        if (! $localFs && isset($tempPath) && file_exists($tempPath)) {
+            unlink($tempPath);
+        }
+    }
+}
 
         return $res;
     }
