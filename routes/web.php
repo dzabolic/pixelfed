@@ -1,22 +1,5 @@
 <?php
 
-\Route::get('/teste-destaque', function () {
-    $user = \Auth::user();
-    
-    if (!$user) {
-        return "Rosa, você precisa fazer login no seu site primeiro!";
-    }
-
-    // Criando um destaque de teste direto no banco
-    \App\Models\Highlight::create([
-        'user_id' => $user->profile->id,
-        'title' => 'Teste de RPG',
-        'cover_path' => 'https://images.unsplash.com/photo-1519074063912-ad25b57b6d17?auto=format&fit=crop&q=80&w=200'
-    ]);
-
-    return "Destaque criado com sucesso! Agora vá no seu perfil e veja se os círculos apareceram.";
-});
-
 Route::domain(config('pixelfed.domain.app'))->middleware(['validemail', 'twofactor', 'localization'])->group(function () {
     Route::get('/', 'SiteController@home')->name('timeline.personal');
     Route::redirect('/home', '/')->name('home');
