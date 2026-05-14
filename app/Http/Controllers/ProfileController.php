@@ -100,7 +100,7 @@ class ProfileController extends Controller
             ];
 
             // Busca os destaques do dono do perfil
-$highlights = Highlight::whereUserId($user->id)->get();
+$highlights = Highlight::whereUserId($user->user_id)->get();
 
 if ($carousel) {
     return view('profile.show_carousel', compact('profile', 'settings', 'highlights'));
@@ -145,7 +145,7 @@ return view('profile.show', compact('profile', 'settings', 'highlights'));
                 ],
             ];
             // Busca os destaques do dono do perfil
-$highlights = Highlight::whereUserId($user->id)->get();
+$highlights = Highlight::whereUserId($user->user_id)->get();
 
 if ($carousel) {
     return view('profile.show_carousel', compact('profile', 'settings', 'highlights'));
