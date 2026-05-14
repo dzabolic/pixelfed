@@ -1,6 +1,6 @@
 <?php
 
-Route::get('/teste-destaque', function () {
+\Route::get('/teste-destaque', function () {
     $user = \Auth::user();
     
     if (!$user) {
