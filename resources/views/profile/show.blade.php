@@ -83,14 +83,14 @@
         <h4 style="font-size: 13px; color: #a8a8a8; margin-bottom: 15px;">Selecionar Stories do Arquivo</h4>
         <div id="storyArchive" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; max-height: 250px; overflow-y: auto; padding-right: 5px;">
             <!-- Simulação de Stories do Arquivo -->
-            @foreach($profile->statuses->take(12) as $story)
-                <div style="aspect-ratio: 9/16; background: #1a1a1a; position: relative; border-radius: 4px; cursor: pointer;" onclick="toggleStorySelect(this)">
-                    <img src="{{ $story->mediaUrl() }}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 4px; opacity: 0.6;">
-                    <div class="check-indicator" style="position: absolute; top: 5px; right: 5px; width: 18px; height: 18px; border: 2px solid #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                        <i class="fas fa-check" style="font-size: 10px; display: none;"></i>
-                    </div>
-                </div>
-            @endforeach
+@foreach($profile->statuses->take(12) as $story)
+    <div data-id="{{ $story->id }}" style="aspect-ratio: 9/16; background: #1a1a1a; position: relative; border-radius: 4px; cursor: pointer;" onclick="toggleStorySelect(this)">
+        <img src="{{ $story->mediaUrl() }}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 4px; opacity: 0.6;">
+        <div class="check-indicator" style="position: absolute; top: 5px; right: 5px; width: 18px; height: 18px; border: 2px solid #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+            <i class="fas fa-check" style="font-size: 10px; display: none;"></i>
+        </div>
+    </div>
+@endforeach
         </div>
 
         <div style="display: flex; gap: 10px; margin-top: 25px;">
@@ -194,5 +194,16 @@ document.getElementById('finalSaveBtn').onclick = function() {
     .highlights-row::-webkit-scrollbar { display: none; }
     .story-interstitial, .story-profile-overlay, .story-blur-bg, #story-view-profile-btn { display: none !important; visibility: hidden !important; }
     .story-content-wrapper { filter: none !important; opacity: 1 !important; }
+    /* Estilo do Círculo Colorido (Halo) */
+.story-ring {
+    background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+    padding: 2px; /* Espaço para o degradê aparecer */
+    display: inline-block;
+}
+
+/* Garante que o contador saia do zero visualmente se houver posts */
+.stat-count:empty::before {
+    content: "0";
+}
 </style>
 @endsection
