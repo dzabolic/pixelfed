@@ -131,17 +131,15 @@ class User extends Authenticatable implements OAuthenticatable
     {
         return $this->expo_token;
     }
-}
+    
+public function routeNotificationForExpo()
+    {
+        return $this->expo_token;
+    }
 
-// Relacionamento: O usuário possui muitos destaques
-public function highlights()
-{
-    // Apontamos para o Model que criamos na pasta Models
-    return $this->hasMany(\App\Models\Highlight::class)->orderBy('created_at', 'desc');
-}
-
-// Conecta o usuário aos seus destaques
-public function highlights()
-{
-    return $this->hasMany(\App\Models\Highlight::class)->orderBy('created_at', 'desc');
+    // Relacionamento: O usuário possui muitos destaques
+    public function highlights()
+    {
+        return $this->hasMany(\App\Models\Highlight::class)->orderBy('created_at', 'desc');
+    }
 }
