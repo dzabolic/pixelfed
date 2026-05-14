@@ -529,5 +529,6 @@ Route::domain(config('pixelfed.domain.app'))->middleware(['validemail', 'twofact
     Route::get('{username}', 'ProfileController@show');
     Route::get('stories/{username}/{id}', 'StoryController@show')->name('story.show');
     Route::post('/i/highlights/create', 'StatusController@createHighlight')->middleware('auth');
+    
 });
 
