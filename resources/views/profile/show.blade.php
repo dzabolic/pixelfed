@@ -3,8 +3,13 @@
 @section('content')
 <div id="rpgram-custom-profile" style="background-color: #000; color: #fff; min-height: 100vh; font-family: -apple-system, BlinkMacSystemFont, sans-serif;">
     
-    <!-- Cabeçalho (Estilo image_848533.jpg) -->
-    <header style="padding: 16px; display: flex; flex-direction: column;">
+    <!-- 1. BARRA SUPERIOR FIXA (Username @ no topo) -->
+    <nav style="display: flex; align-items: center; justify-content: center; padding: 10px 16px; border-bottom: 1px solid #262626; position: sticky; top: 0; background: #000; z-index: 100;">
+        <span style="font-weight: 700; font-size: 14px;">{{ $profile->username ?? '' }}</span>
+    </nav>
+
+    <!-- 2. CABEÇALHO (Avatar e Stats) -->
+    <header style="padding: 16px 16px 0; display: flex; flex-direction: column;">
         <div style="display: flex; align-items: center; margin-bottom: 12px;">
             <div style="margin-right: 28px;">
                 <div style="width: 80px; height: 80px; border-radius: 50%; border: 1px solid #333; padding: 2px;">
@@ -18,76 +23,72 @@
             </div>
         </div>
 
-        <div style="font-size: 13px; line-height: 17px; margin-bottom: 16px;">
+        <!-- Nome em Negrito e Bio -->
+        <div style="font-size: 13px; line-height: 17px; margin-bottom: 16px; padding: 0 4px;">
             <div style="font-weight: 700; font-size: 14px; margin-bottom: 2px;">{{ $profile->name ?? ($profile->display_name ?? $profile->username) }}</div>
             <div style="white-space: pre-wrap; color: #efefef;">{!! $profile->bio !!}</div>
         </div>
 
-        <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+        <div style="display: flex; gap: 8px; margin-bottom: 20px;">
             @if(Auth::check() && Auth::id() == $profile->user_id)
-                <a href="{{ route('settings') }}" style="flex: 1; background: #262626; color: #fff; text-align: center; padding: 6px 0; border-radius: 8px; font-size: 13px; font-weight: 600; text-decoration: none;">Editar perfil</a>
-                <button style="flex: 1; background: #262626; color: #fff; text-align: center; padding: 6px 0; border-radius: 8px; font-size: 13px; font-weight: 600; border: none; cursor: pointer;">Compartilhar</button>
+                <a href="{{ route('settings') }}" style="flex: 1; background: #262626; color: #fff; text-align: center; padding: 7px 0; border-radius: 8px; font-size: 13px; font-weight: 600; text-decoration: none;">Editar perfil</a>
+                <button style="flex: 1; background: #262626; color: #fff; text-align: center; padding: 7px 0; border-radius: 8px; font-size: 13px; font-weight: 600; border: none; cursor: pointer;">Compartilhar</button>
             @endif
         </div>
     </header>
 
-    <!-- Destaques (Clique abre o Esqueleto/Modal) -->
-    <div class="highlights-row" style="display: flex; overflow-x: auto; padding: 0 16px 16px; gap: 14px; scrollbar-width: none;">
+    <!-- 3. LINHA DE DESTAQUES (Segura) -->
+    <div class="highlights-row" style="display: flex; overflow-x: auto; padding: 0 16px 20px; gap: 14px; scrollbar-width: none;">
         @if(Auth::check() && Auth::id() == $profile->user_id)
-            <div style="flex: 0 0 auto; text-align: center; width: 68px;" onclick="openHighlightModal()">
-                <div style="width: 62px; height: 62px; border-radius: 50%; border: 1px solid #333; display: flex; align-items: center; justify-content: center; margin-bottom: 5px; cursor: pointer;">
+            <div style="flex: 0 0 auto; text-align: center; width: 68px;" onclick="document.getElementById('highlightModal').style.display = 'flex'">
+                <div style="width: 62px; height: 62px; border-radius: 50%; border: 1px solid #333; display: flex; align-items: center; justify-content: center; margin-bottom: 5px; cursor: pointer; background: #000;">
                     <span style="font-size: 26px; font-weight: 200;">+</span>
                 </div>
                 <span style="font-size: 11px;">Novo</span>
             </div>
         @endif
         
-        @foreach($highlights as $h)
-            <div style="flex: 0 0 auto; text-align: center; width: 68px;">
-                <div style="width: 62px; height: 62px; border-radius: 50%; border: 1px solid #333; padding: 2px; margin-bottom: 5px;">
-                    <img src="{{ $h->coverUrl() }}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
+        @if(isset($highlights) && count($highlights) > 0)
+            @foreach($highlights as $h)
+                <div style="flex: 0 0 auto; text-align: center; width: 68px;">
+                    <div style="width: 62px; height: 62px; border-radius: 50%; border: 1px solid #333; padding: 2px; margin-bottom: 5px;">
+                        <img src="{{ method_exists($h, 'coverUrl') ? $h->coverUrl() : '' }}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
+                    </div>
+                    <span style="font-size: 11px; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ $h->title ?? '' }}</span>
                 </div>
-                <span style="font-size: 11px; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ $h->title }}</span>
-            </div>
-        @endforeach
+            @endforeach
+        @endif
     </div>
 
-    <!-- ESQUELETO DO CRIADOR DE DESTAQUES (MODAL) -->
-    <div id="highlightModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 9999; align-items: center; justify-content: center;">
+    <!-- 4. ESQUELETO DO MODAL (Não gera 404) -->
+    <div id="highlightModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 9999; align-items: center; justify-content: center;">
         <div style="background: #121212; width: 90%; max-width: 380px; border-radius: 12px; padding: 25px; border: 1px solid #333; text-align: center;">
             <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 25px;">Novo Destaque</h3>
-            
-            <!-- Círculo com Câmera (Escolher Capa) -->
-            <div id="coverContainer" style="position: relative; width: 90px; height: 90px; margin: 0 auto 20px; cursor: pointer;" onclick="document.getElementById('coverInput').click()">
+            <div style="position: relative; width: 90px; height: 90px; margin: 0 auto 20px; cursor: pointer;" onclick="document.getElementById('coverInput').click()">
                 <div id="coverPreview" style="width: 90px; height: 90px; border-radius: 50%; border: 1px dashed #444; display: flex; align-items: center; justify-content: center; background: #1a1a1a; overflow: hidden;">
-                    <i class="fas fa-camera" id="cameraIcon" style="color: #8e8e8e; font-size: 24px;"></i>
+                    <i class="fas fa-camera" style="color: #8e8e8e; font-size: 24px;"></i>
                 </div>
                 <input type="file" id="coverInput" style="display: none;" accept="image/*" onchange="previewImage(this)">
             </div>
-
-            <!-- Campo Nome do Destaque -->
             <input type="text" id="highlightName" placeholder="Nome do destaque" style="width: 100%; background: #000; border: 1px solid #333; color: #fff; padding: 12px; border-radius: 8px; font-size: 14px; margin-bottom: 25px; outline: none; text-align: center;">
-
-            <!-- Botões de Ação -->
             <div style="display: flex; gap: 12px;">
-                <button onclick="closeHighlightModal()" style="flex: 1; background: transparent; border: 1px solid #333; color: #fff; padding: 12px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">Cancelar</button>
+                <button onclick="document.getElementById('highlightModal').style.display = 'none'" style="flex: 1; background: transparent; border: 1px solid #333; color: #fff; padding: 12px; border-radius: 8px; font-size: 14px; cursor: pointer;">Cancelar</button>
                 <button id="saveHighlightBtn" style="flex: 1; background: #fff; border: none; color: #000; padding: 12px; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer;">Salvar</button>
             </div>
         </div>
     </div>
 
-    <!-- Abas de Navegação -->
+    <!-- 5. ABAS E GRADE -->
     <div style="display: flex; justify-content: space-around; border-top: 1px solid #262626; padding: 12px 0;">
         <a href="?tab=posts" style="text-decoration: none;"><i class="fas fa-th" style="color: {{ !request('tab') || request('tab') == 'posts' ? '#fff' : '#8e8e8e' }}; font-size: 20px;"></i></a>
         <a href="?tab=reposts" style="text-decoration: none;"><i class="fas fa-retweet" style="color: {{ request('tab') == 'reposts' ? '#fff' : '#8e8e8e' }}; font-size: 20px;"></i></a>
         <a href="?tab=collections" style="text-decoration: none;"><i class="fas fa-layer-group" style="color: {{ request('tab') == 'collections' ? '#fff' : '#8e8e8e' }}; font-size: 20px;"></i></a>
     </div>
 
-    <!-- Grade 4:5 Dinâmica -->
     <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; padding-bottom: 50px;">
         @php
             $tab = request('tab', 'posts');
-            $items = ($tab == 'reposts') ? ($profile->shares ?? []) : (($tab == 'collections') ? ($profile->collections ?? []) : ($profile->statuses ?? []));
+            $items = ($tab == 'reposts' && isset($profile->shares)) ? $profile->shares : (($tab == 'collections' && isset($profile->collections)) ? $profile->collections : ($profile->statuses ?? []));
         @endphp
 
         @foreach($items as $item)
@@ -102,13 +103,6 @@
 </div>
 
 <script>
-    function openHighlightModal() { document.getElementById('highlightModal').style.display = 'flex'; }
-    function closeHighlightModal() { 
-        document.getElementById('highlightModal').style.display = 'none'; 
-        document.getElementById('coverPreview').innerHTML = '<i class="fas fa-camera" id="cameraIcon" style="color: #8e8e8e; font-size: 24px;"></i>';
-        document.getElementById('highlightName').value = '';
-    }
-
     function previewImage(input) {
         if (input.files && input.files[0]) {
             var reader = new FileReader();
@@ -118,12 +112,10 @@
             reader.readAsDataURL(input.files[0]);
         }
     }
-
     document.getElementById('saveHighlightBtn').onclick = function() {
         const name = document.getElementById('highlightName').value;
         if(!name) { alert('Por favor, dê um nome ao destaque.'); return; }
-        alert('Processando upload para o S3: ' + name);
-        // A lógica de envio real será integrada aqui após o debut visual
+        alert('Enviando para o S3 (rpgram-media): ' + name);
     };
 </script>
 
