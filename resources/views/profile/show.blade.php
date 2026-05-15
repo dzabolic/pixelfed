@@ -147,7 +147,7 @@
         this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
         this.disabled = true;
 
-        fetch('/i/highlights/create', {
+        fetch('/i/rpgram/highlights/create', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
