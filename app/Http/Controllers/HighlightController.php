@@ -10,6 +10,23 @@ use Storage;
 
 class HighlightController extends Controller
 {
+
+    public function destroy(Request $request, $id)
+    {
+        $highlight = Highlight::findOrFail($id);
+ 
+        // Segurança: só o dono pode apagar
+        abort_if($highlight->user_id !== Auth::id(), 403);
+ 
+        // Remove os stories vinculados na tabela pivot
+        $highlight->stories()->detach();
+ 
+        // Apaga o destaque
+        $highlight->delete();
+ 
+        return response()->json(['success' => true]);
+    }
+ 
     public function create(Request $request)
     {
         $request->validate([
