@@ -177,7 +177,8 @@ Route::domain(config('pixelfed.domain.app'))->middleware(['validemail', 'twofact
     Route::post('/i/app-email-verify', 'AppRegisterController@store')->middleware('throttle:app-signup');
     Route::get('/i/app-email-resend', 'AppRegisterController@resendVerification');
     Route::post('/i/app-email-resend', 'AppRegisterController@resendVerificationStore')->middleware('throttle:app-code-resend');
-
+    Route::post('/i/highlights/create', 'HighlightController@create')->middleware('auth');
+    
     Route::group(['prefix' => 'i'], function () {
         Route::redirect('/', '/');
         Route::get('compose', 'StatusController@compose')->name('compose');
