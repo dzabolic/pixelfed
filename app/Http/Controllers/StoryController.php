@@ -242,17 +242,26 @@ class StoryController extends StoryComposeController
         return redirect("/stories/{$username}");
     }
 
-        public function show(Request $request, $username, $id)
-    {
-        abort_if(! (bool) config_cache('instance.stories.enabled'), 404);
+public function show(Request $request, $username, $id)
+{
+    abort_if(!(bool) config_cache('instance.stories.enabled'), 404);
 
-        // Busca o story com o perfil, visualizações e reações de uma vez só
-        $story = Story::with(['profile', 'views.profile', 'reactions'])
-            ->whereActive(true)
-            ->findOrFail($id);
+    // CORRIGIDO: Busca o story mesmo que esteja inativo (archived)
+    // para permitir que o dono veja e adicione aos destaques
+    $story = Story::with(['profile.user', 'views.profile'])
+        ->findOrFail($id);
 
-        return view('stories.show', compact('story'));
+    // Se não for o dono, exige que o story ainda esteja ativo
+    $isOwner = Auth::check() && Auth::user() &&
+               Auth::id() == $story->profile->user_id;
+
+    if (!$isOwner && !$story->active) {
+        abort(404);
     }
+
+    return view('stories.show', compact('story'));
+}
+
     
 public function getViewers(Request $request, $id)
     {
