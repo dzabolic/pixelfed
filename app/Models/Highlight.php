@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Highlight extends Model
 {
-    protected $fillable = ['user_id', 'title', 'cover_path'];
+    protected $fillable = ['user_id', 'title', 'cover_path', 'cover_url'];
 
     // Relacionamento: Um destaque pertence a um usuário
     public function user()
