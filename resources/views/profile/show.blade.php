@@ -78,34 +78,6 @@
         </div>
 
         <hr style="border: 0; border-top: 1px solid #262626; margin: 20px 0;">
-
-{{-- MODAL DE OPÇÕES DO DESTAQUE --}}
-<div id="highlightOptionsModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; align-items: flex-end; justify-content: center;">
-    <div style="background: #1c1c1e; width: 100%; max-width: 400px; border-radius: 14px 14px 0 0; overflow: hidden; margin: 0 auto;">
-        
-        {{-- Nome do destaque --}}
-        <div style="padding: 16px; text-align: center; border-bottom: 1px solid #2c2c2e;">
-            <span id="highlightOptionsTitle" style="font-size: 13px; color: #8e8e8e;"></span>
-        </div>
- 
-        {{-- Botão Ver --}}
-        <button onclick="viewHighlightStories()" style="width: 100%; background: transparent; border: none; border-bottom: 1px solid #2c2c2e; color: #fff; padding: 16px; font-size: 16px; cursor: pointer; text-align: center;">
-            Ver destaque
-        </button>
- 
-        {{-- Botão Apagar (só aparece pro dono) --}}
-        @if(Auth::check() && Auth::id() == $profile->user_id)
-        <button onclick="deleteHighlight()" style="width: 100%; background: transparent; border: none; border-bottom: 1px solid #2c2c2e; color: #ed4956; padding: 16px; font-size: 16px; font-weight: 600; cursor: pointer; text-align: center;">
-            Apagar destaque
-        </button>
-        @endif
- 
-        {{-- Botão Cancelar --}}
-        <button onclick="closeHighlightOptions()" style="width: 100%; background: transparent; border: none; color: #fff; padding: 16px; font-size: 16px; cursor: pointer; text-align: center;">
-            Cancelar
-        </button>
-    </div>
-</div>
  
 <script>
     let activeHighlightId = null;
@@ -249,6 +221,33 @@
     };
 </script>
 
+    {{-- MODAL DE OPÇÕES DO DESTAQUE --}}
+<div id="highlightOptionsModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; align-items: flex-end; justify-content: center;">
+    <div style="background: #1c1c1e; width: 100%; max-width: 400px; border-radius: 14px 14px 0 0; overflow: hidden; margin: 0 auto;">
+        
+        {{-- Nome do destaque --}}
+        <div style="padding: 16px; text-align: center; border-bottom: 1px solid #2c2c2e;">
+            <span id="highlightOptionsTitle" style="font-size: 13px; color: #8e8e8e;"></span>
+        </div>
+ 
+        {{-- Botão Ver --}}
+        <button onclick="viewHighlightStories()" style="width: 100%; background: transparent; border: none; border-bottom: 1px solid #2c2c2e; color: #fff; padding: 16px; font-size: 16px; cursor: pointer; text-align: center;">
+            Ver destaque
+        </button>
+ 
+        {{-- Botão Apagar (só aparece pro dono) --}}
+        @if(Auth::check() && Auth::id() == $profile->user_id)
+        <button onclick="deleteHighlight()" style="width: 100%; background: transparent; border: none; border-bottom: 1px solid #2c2c2e; color: #ed4956; padding: 16px; font-size: 16px; font-weight: 600; cursor: pointer; text-align: center;">
+            Apagar destaque
+        </button>
+        @endif
+ 
+        {{-- Botão Cancelar --}}
+        <button onclick="closeHighlightOptions()" style="width: 100%; background: transparent; border: none; color: #fff; padding: 16px; font-size: 16px; cursor: pointer; text-align: center;">
+            Cancelar
+        </button>
+    </div>
+</div>
 
     <!-- Abas e Grid -->
     <div style="display: flex; justify-content: space-around; border-top: 1px solid #262626; padding: 12px 0;">
