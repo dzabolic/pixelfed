@@ -82,7 +82,7 @@
 <script>
     let activeHighlightId = null;
  
-    function viewHighlight{{ $h->id }}(id, title) {
+    function viewHighlight({{ $h->id }}, '{{ $h->title }}')
         activeHighlightId = id;
         document.getElementById('highlightOptionsTitle').innerText = title;
         const modal = document.getElementById('highlightOptionsModal');
