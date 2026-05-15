@@ -80,18 +80,23 @@
         <hr style="border: 0; border-top: 1px solid #262626; margin: 20px 0;">
 
         <!-- Passo 2: Seleção do Arquivo de Stories -->
-        <h4 style="font-size: 13px; color: #a8a8a8; margin-bottom: 15px;">Selecionar Stories do Arquivo</h4>
-        <div id="storyArchive" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; max-height: 250px; overflow-y: auto; padding-right: 5px;">
-            <!-- Simulação de Stories do Arquivo -->
-@foreach($profile->statuses->take(12) as $story)
-    <div data-id="{{ $story->id }}" style="aspect-ratio: 9/16; background: #1a1a1a; position: relative; border-radius: 4px; cursor: pointer;" onclick="toggleStorySelect(this)">
-        <img src="{{ $story->mediaUrl() }}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 4px; opacity: 0.6;">
-        <div class="check-indicator" style="position: absolute; top: 5px; right: 5px; width: 18px; height: 18px; border: 2px solid #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-            <i class="fas fa-check" style="font-size: 10px; display: none;"></i>
+@php
+    $myStories = \App\Story::whereProfileId($profile->id)->latest()->get();
+@endphp
+
+<div id='storyArchive' style='display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; max-height: 250px; overflow-y: auto;'>
+    @forelse($myStories as $story)
+        <div data-id='{{ $story->id }}' style='aspect-ratio: 9/16; background: #1a1a1a; position: relative; border-radius: 4px; cursor: pointer;' onclick='toggleStorySelect(this)'>
+            <img src='{{ $story->mediaUrl() }}' style='width: 100%; height: 100%; object-fit: cover; border-radius: 4px; opacity: 0.6;'>
+            <div class='check-indicator' style='position: absolute; top: 5px; right: 5px; width: 18px; height: 18px; border: 2px solid #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center;'>
+                <i class='fas fa-check' style='font-size: 10px; display: none;'></i>
+            </div>
         </div>
-    </div>
-@endforeach
-        </div>
+    @empty
+        <p style='color: #888; font-size: 13px; grid-column: span 3; text-align: center; padding: 20px;'>Você ainda não tem stories arquivados.</p>
+    @endforelse
+</div>
+
 
         <div style="display: flex; gap: 10px; margin-top: 25px;">
             <button onclick="closeHighlightModal()" style="flex: 1; background: transparent; border: 1px solid #333; color: #fff; padding: 12px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;">Cancelar</button>
@@ -101,7 +106,6 @@
 </div>
 
 <script>
-    // Seleção de Stories no Arquivo
     function toggleStorySelect(el) {
         const check = el.querySelector('.fas.fa-check');
         const img = el.querySelector('img');
@@ -116,19 +120,33 @@
         }
     }
 
-    // Função de Salvar (Lógica para o bucket rpgram-media)
-document.getElementById('finalSaveBtn').onclick = function() {
-        const name = document.getElementById('highlightName').value;
-        const selectedStories = Array.from(document.querySelectorAll('.check-indicator i[style*="display: block"]'))
-                                     .map(el => el.closest('[data-id]').dataset.id);
+    // CORRIGIDO: Função agora está no <script>, não no <style>
+    function closeHighlightModal() {
+        document.getElementById('highlightModal').style.display = 'none';
+    }
 
-        if(!name) { alert('Dê um nome ao seu destaque.'); return; }
-        if(selectedStories.length === 0) { alert('Selecione pelo menos um story.'); return; }
-        
+    function previewImage(input) {
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('coverPreview').innerHTML = '<img src=' + e.target.result + ' style="width:100%;height:100%;object-fit:cover;">';
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    document.getElementById('finalSaveBtn').onclick = function() {
+        const name = document.getElementById('highlightName').value;
+        const selectedStories = Array.from(
+            document.querySelectorAll('[data-id] .fas.fa-check[style*="display: block"]')
+        ).map(el => el.closest('[data-id]').dataset.id);
+
+        if (!name) { alert('Dê um nome ao destaque.'); return; }
+        if (selectedStories.length === 0) { alert('Selecione pelo menos um story.'); return; }
+
         this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
         this.disabled = true;
 
-        // Envio real para o servidor
         fetch('/i/highlights/create', {
             method: 'POST',
             headers: {
@@ -137,29 +155,26 @@ document.getElementById('finalSaveBtn').onclick = function() {
             },
             body: JSON.stringify({ title: name, items: selectedStories })
         })
-        .then(response => response.json())
+        .then(r => r.json())
         .then(data => {
-            alert('Destaque criado com sucesso!');
-            location.reload();
+            if (data.success) {
+                alert('Destaque criado com sucesso!');
+                location.reload();
+            } else {
+                alert('Erro: ' + (data.error || 'Tente novamente'));
+            }
+            this.innerHTML = 'Salvar';
+            this.disabled = false;
         })
-        .catch(error => {
-            console.error('Erro:', error);
-            alert('Erro ao salvar. Verifique o console.');
+        .catch(err => {
+            console.error(err);
+            alert('Erro de conexão. Veja o console.');
             this.innerHTML = 'Salvar';
             this.disabled = false;
         });
     };
-
-    // Função para ver o destaque e abrir o menu de 3 pontinhos
-    function viewHighlight(id) {
-        // Aqui abriria o player de stories
-        // Se for o dono:
-        const isOwner = {{ (Auth::check() && Auth::id() == $profile->user_id) ? 'true' : 'false' }};
-        if(isOwner) {
-            console.log("Opções de Editar/Excluir liberadas nos 3 pontinhos");
-        }
-    }
 </script>
+
 
     <!-- Abas e Grid -->
     <div style="display: flex; justify-content: space-around; border-top: 1px solid #262626; padding: 12px 0;">
@@ -176,18 +191,6 @@ document.getElementById('finalSaveBtn').onclick = function() {
         @endforeach
     </div>
 </div>
-
-<script>
-    function previewImage(input) {
-        if (input.files && input.files[0]) {
-            var reader = new FileReader();
-            reader.onload = function(e) {
-                document.getElementById('coverPreview').innerHTML = '<img src="' + e.target.result + '" style="width: 100%; height: 100%; object-fit: cover;">';
-            }
-            reader.readAsDataURL(input.files[0]);
-        }
-    }
-</script>
 
 <style>
     body { background-color: #000 !important; }
