@@ -31,7 +31,7 @@ class HighlightController extends Controller
             return response()->json(['error' => 'Nenhum story válido selecionado'], 422);
         }
 
-            public function destroy(Request $request, $id)
+    public function destroy(Request $request, $id)
     {
         $highlight = Highlight::findOrFail($id);
  
