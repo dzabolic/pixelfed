@@ -87,6 +87,19 @@ class HighlightController extends Controller
         ]);
     }
 
+        public function data(Request $request, $id)
+    {
+        $highlight = Highlight::with('stories')->findOrFail($id);
+        abort_if($highlight->user_id !== Auth::id(), 403);
+ 
+        return response()->json([
+            'id'        => $highlight->id,
+            'title'     => $highlight->title,
+            'cover_url' => $highlight->cover_url,
+            'story_ids' => $highlight->stories->pluck('id'),
+        ]);
+    }
+ 
     public function destroy(Request $request, $id)
     {
         $highlight = Highlight::findOrFail($id);
