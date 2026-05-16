@@ -179,6 +179,8 @@ Route::domain(config('pixelfed.domain.app'))->middleware(['validemail', 'twofact
     Route::post('/i/app-email-resend', 'AppRegisterController@resendVerificationStore')->middleware('throttle:app-code-resend');
     Route::post('/i/rpgram/highlights/create', 'HighlightController@create')->middleware('auth');
     Route::delete('/i/rpgram/highlights/{id}', 'HighlightController@destroy')->middleware('auth');
+    Route::get('/i/rpgram/highlights/{id}/data', 'HighlightController@data')->middleware('auth');
+    Route::post('/i/rpgram/highlights/{id}/update', 'HighlightController@update')->middleware('auth');
     
     Route::group(['prefix' => 'i'], function () {
         Route::redirect('/', '/');
