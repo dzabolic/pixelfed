@@ -9,6 +9,10 @@ use App\User;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
+use App\Http\Controllers\LinkedAccountController;
+use App\Models\LinkedAccount;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Auth;
 
 class LoginController extends Controller
 {
@@ -45,6 +49,25 @@ class LoginController extends Controller
     {
         $this->middleware('guest')->except('logout');
     }
+    
+    public function username()
+    {
+    return 'username';
+    }
+
+    protected function credentials(Request $request)
+    {
+        $login = $request->input('username');
+ 
+        // Detecta se é email ou username
+        $field = filter_var($login, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
+ 
+    return [
+        $field     => $login,
+        'password' => $request->input('password'),
+        ];
+    }
+ 
 
     public function showLoginForm()
     {
@@ -95,24 +118,45 @@ class LoginController extends Controller
      * @param  mixed  $user
      * @return mixed
      */
-    protected function authenticated($request, $user)
+    protected function authenticated(Request $request, $user)
     {
-        if ($user->status == 'deleted') {
-            return;
+        // Recupera o ID do usuário que estava logado antes (guardado na sessão)
+        $previousUserId = $request->session()->get('rpgram_previous_user_id');
+ 
+        if ($previousUserId && $previousUserId !== $user->id) {
+            $previousUser = \App\User::find($previousUserId);
+            if ($previousUser) {
+                LinkedAccountController::linkAfterLogin($previousUser, $user);
+            }
         }
-
-        $log = new AccountLog;
-        $log->user_id = $user->id;
-        $log->item_id = $user->id;
-        $log->item_type = 'App\User';
-        $log->action = 'auth.login';
-        $log->message = 'Account Login';
-        $log->link = null;
-        $log->ip_address = $request->ip();
-        $log->user_agent = $request->userAgent();
-        $log->save();
+ 
+        // Guarda o usuário atual na sessão para o próximo login
+        $request->session()->put('rpgram_previous_user_id', $user->id);
+ 
+        return redirect()->intended($this->redirectPath());
     }
 
+        protected function loggedOut(Request $request)
+    {
+        // A sessão já foi invalidada pelo logout padrão do Laravel,
+    }
+
+        public function logout(Request $request)
+    {
+        $userId = Auth::id();
+ 
+        Auth::guard()->logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+ 
+        // Guarda na nova sessão quem estava logado (para vincular após próximo login)
+        if ($request->has('linking')) {
+            $request->session()->put('rpgram_previous_user_id', $userId);
+        }
+ 
+        return redirect('/login');
+    }
+    
     /**
      * Get the failed login response instance.
      *
