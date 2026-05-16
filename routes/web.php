@@ -177,6 +177,9 @@ Route::domain(config('pixelfed.domain.app'))->middleware(['validemail', 'twofact
     Route::post('/i/app-email-verify', 'AppRegisterController@store')->middleware('throttle:app-signup');
     Route::get('/i/app-email-resend', 'AppRegisterController@resendVerification');
     Route::post('/i/app-email-resend', 'AppRegisterController@resendVerificationStore')->middleware('throttle:app-code-resend');
+    Route::get('/i/rpgram/linked-accounts', 'LinkedAccountController@index')->middleware('auth');
+    Route::get('/i/rpgram/switch-account/{token}', 'LinkedAccountController@switchAccount')->middleware('auth');
+    Route::delete('/i/rpgram/linked-accounts/{linkedUserId}', 'LinkedAccountController@unlink')->middleware('auth');
     Route::post('/i/rpgram/highlights/create', 'HighlightController@create')->middleware('auth');
     Route::delete('/i/rpgram/highlights/{id}', 'HighlightController@destroy')->middleware('auth');
     Route::get('/i/rpgram/highlights/{id}/data', 'HighlightController@data')->middleware('auth');
