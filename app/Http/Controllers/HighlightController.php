@@ -21,7 +21,6 @@ class HighlightController extends Controller
         $userId    = Auth::id();
         $profileId = Auth::user()->profile_id;
 
-        // Verifica se os stories pertencem ao usuário
         $storyIds = Story::whereIn('id', $request->items)
             ->whereProfileId($profileId)
             ->pluck('id');
@@ -30,7 +29,6 @@ class HighlightController extends Controller
             return response()->json(['error' => 'Nenhum story válido selecionado'], 422);
         }
 
-        // Capa: usa a thumbnail do primeiro story selecionado
         $firstStory = Story::find($storyIds->first());
         $coverUrl   = $firstStory ? url(Storage::url($firstStory->path)) : null;
 
@@ -45,6 +43,19 @@ class HighlightController extends Controller
         return response()->json([
             'success'   => true,
             'highlight' => $highlight->load('stories'),
+        ]);
+    }
+
+    public function data(Request $request, $id)
+    {
+        $highlight = Highlight::with('stories')->findOrFail($id);
+        abort_if($highlight->user_id !== Auth::id(), 403);
+
+        return response()->json([
+            'id'        => $highlight->id,
+            'title'     => $highlight->title,
+            'cover_url' => $highlight->cover_url,
+            'story_ids' => $highlight->stories->pluck('id'),
         ]);
     }
 
@@ -69,7 +80,6 @@ class HighlightController extends Controller
             return response()->json(['error' => 'Nenhum story válido selecionado'], 422);
         }
 
-        // Capa: sempre o primeiro story selecionado
         $firstStory = Story::find($storyIds->first());
         $coverUrl   = $firstStory ? url(Storage::url($firstStory->path)) : $highlight->cover_url;
 
@@ -78,7 +88,6 @@ class HighlightController extends Controller
             'cover_url' => $coverUrl,
         ]);
 
-        // Substitui os stories do destaque pelos novos selecionados
         $highlight->stories()->sync($storyIds);
 
         return response()->json([
@@ -87,30 +96,32 @@ class HighlightController extends Controller
         ]);
     }
 
-        public function data(Request $request, $id)
-    {
-        $highlight = Highlight::with('stories')->findOrFail($id);
-        abort_if($highlight->user_id !== Auth::id(), 403);
- 
-        return response()->json([
-            'id'        => $highlight->id,
-            'title'     => $highlight->title,
-            'cover_url' => $highlight->cover_url,
-            'story_ids' => $highlight->stories->pluck('id'),
-        ]);
-    }
- 
     public function destroy(Request $request, $id)
     {
         $highlight = Highlight::findOrFail($id);
         abort_if($highlight->user_id !== Auth::id(), 403);
 
-        // Remove apenas o vínculo na tabela pivot — NÃO apaga os stories
+        // Desvincula os stories — NÃO os apaga
         $highlight->stories()->detach();
-
-        // Apaga o destaque
         $highlight->delete();
 
         return response()->json(['success' => true]);
+    }
+
+    public function view(Request $request, $id)
+    {
+        $highlight = Highlight::with(['stories' => function ($q) {
+            $q->orderBy('highlight_story.id', 'asc');
+        }])->findOrFail($id);
+
+        $firstStory = $highlight->stories->first();
+
+        if (! $firstStory) {
+            return back()->with('error', 'Este destaque não tem stories.');
+        }
+
+        $username = $firstStory->profile->username;
+
+        return redirect("/stories/{$username}/{$firstStory->id}");
     }
 }
