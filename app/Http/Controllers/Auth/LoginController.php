@@ -4,65 +4,54 @@ namespace App\Http\Controllers\Auth;
 
 use App\AccountLog;
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\LinkedAccountController;
+use App\Models\LinkedAccount;
 use App\Services\BouncerService;
 use App\User;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Illuminate\Http\Request;
-use Illuminate\Validation\ValidationException;
-use App\Http\Controllers\LinkedAccountController;
-use App\Models\LinkedAccount;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class LoginController extends Controller
 {
-    /*
-    |--------------------------------------------------------------------------
-    | Login Controller
-    |--------------------------------------------------------------------------
-    |
-    | This controller handles authenticating users for the application and
-    | redirecting them to your home screen. The controller uses a trait
-    | to conveniently provide its functionality to your applications.
-    |
-    */
-
     use AuthenticatesUsers;
 
-    /**
-     * Where to redirect users after login.
-     *
-     * @var string
-     */
     protected $redirectTo = '/i/web';
-
     protected $maxAttempts = 5;
-
     protected $decayMinutes = 60;
 
-    /**
-     * Create a new controller instance.
-     *
-     * @return void
-     */
     public function __construct()
     {
         $this->middleware('guest')->except('logout');
     }
-    
+
+    /**
+     * O campo de login aceita tanto 'login' (nome do campo no HTML)
+     * quanto 'username'. Retornamos 'login' para o trait saber qual campo pegar.
+     */
     public function username()
     {
-    return 'username';
+        return 'login';
     }
 
+    /**
+     * Sobrescreve as credenciais para buscar por username OU email,
+     * independente do que o usuário digitou no campo 'login'.
+     */
     protected function credentials(Request $request)
     {
-    return [
-        'username' => $request->input('username'),
-        'password' => $request->input('password'),
-    ];
-}
- 
+        $loginValue = $request->input('login');
+
+        // Detecta se é email ou username
+        $field = filter_var($loginValue, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
+
+        return [
+            $field     => $loginValue,
+            'password' => $request->input('password'),
+        ];
+    }
 
     public function showLoginForm()
     {
@@ -74,10 +63,7 @@ class LoginController extends Controller
     }
 
     /**
-     * Validate the user login request.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return void
+     * Validação: exige apenas 'login' e 'password'.
      */
     public function validateLogin($request)
     {
@@ -85,10 +71,11 @@ class LoginController extends Controller
             abort_if(BouncerService::checkIp($request->ip()), 404);
         }
 
-$rules = [
-    'username' => 'required|string',
-    'password' => 'required|string|min:6',
-];
+        $rules = [
+            'login'    => 'required|string',
+            'password' => 'required|string|min:6',
+        ];
+
         $messages = [];
 
         if (
@@ -103,62 +90,49 @@ $rules = [
             $rules['h-captcha-response'] = 'required|filled|captcha|min:5';
             $messages['h-captcha-response.required'] = 'The captcha must be filled';
         }
+
         $request->validate($rules, $messages);
     }
 
     /**
-     * The user has been authenticated.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  mixed  $user
-     * @return mixed
+     * Após login: vincula contas se houver sessão anterior (troca de conta).
      */
     protected function authenticated(Request $request, $user)
     {
-        // Recupera o ID do usuário que estava logado antes (guardado na sessão)
         $previousUserId = $request->session()->get('rpgram_previous_user_id');
- 
+
         if ($previousUserId && $previousUserId !== $user->id) {
-            $previousUser = \App\User::find($previousUserId);
+            $previousUser = User::find($previousUserId);
             if ($previousUser) {
                 LinkedAccountController::linkAfterLogin($previousUser, $user);
             }
         }
- 
-        // Guarda o usuário atual na sessão para o próximo login
+
         $request->session()->put('rpgram_previous_user_id', $user->id);
- 
+
         return redirect()->intended($this->redirectPath());
     }
 
-        protected function loggedOut(Request $request)
+    protected function loggedOut(Request $request)
     {
-        // A sessão já foi invalidada pelo logout padrão do Laravel,
+        // Sessão já foi invalidada pelo logout padrão do Laravel
     }
 
-        public function logout(Request $request)
+    public function logout(Request $request)
     {
         $userId = Auth::id();
- 
+
         Auth::guard()->logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
- 
-        // Guarda na nova sessão quem estava logado (para vincular após próximo login)
+
         if ($request->has('linking')) {
             $request->session()->put('rpgram_previous_user_id', $userId);
         }
- 
+
         return redirect('/login');
     }
-    
-    /**
-     * Get the failed login response instance.
-     *
-     * @return \Symfony\Component\HttpFoundation\Response
-     *
-     * @throws \Illuminate\Validation\ValidationException
-     */
+
     protected function sendFailedLoginResponse(Request $request)
     {
         if (config('captcha.triggers.login.enabled')) {
