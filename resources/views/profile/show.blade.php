@@ -6,6 +6,15 @@
     <!-- Barra Superior Fixa -->
     <nav style="display: flex; align-items: center; justify-content: center; padding: 10px 16px; border-bottom: 1px solid #262626; position: sticky; top: 0; background: #000; z-index: 100;">
         <span style="font-weight: 700; font-size: 15px;">{{ $profile->username ?? 'perfil' }}</span>
+
+        <!-- BOTÃO DE TROCAR CONTAS (absoluto, não mexe no layout) -->
+        @if(Auth::check() && Auth::id() == $profile->user_id)
+        <button onclick="openAccountMenu()" style="background: transparent; border: none; cursor: pointer; padding: 4px;">
+            <i class="fas fa-bars" style="color: #fff; font-size: 20px;"></i>
+        </button>
+        @else
+        <span style="width: 24px;"></span>
+        @endif
     </nav>
 
     <!-- Cabeçalho Principal -->
@@ -143,6 +152,61 @@
                 <img src="{{ $status->mediaUrl() }}" style="width: 100%; height: 100%; object-fit: cover;">
             </div>
         @endforeach
+    </div>
+</div>
+
+{{-- GAVETA DO MENU (três tracinhos) --}}
+<div id="accountMenuDrawer" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 10000;">
+    
+    {{-- Fundo escuro clicável para fechar --}}
+    <div onclick="closeAccountMenu()" style="position: absolute; inset: 0; background: rgba(0,0,0,0.5);"></div>
+ 
+    {{-- Painel lateral direito --}}
+    <div style="position: absolute; top: 0; right: 0; width: 80%; max-width: 320px; height: 100%; background: #000; border-left: 1px solid #262626; display: flex; flex-direction: column; overflow-y: auto;">
+        
+        {{-- Header --}}
+        <div style="padding: 20px 16px 10px; border-bottom: 1px solid #262626;">
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+                <span style="font-weight: 700; font-size: 16px; color: #fff;">Contas</span>
+                <button onclick="closeAccountMenu()" style="background: transparent; border: none; color: #fff; font-size: 20px; cursor: pointer;">&times;</button>
+            </div>
+        </div>
+ 
+        {{-- Lista de contas vinculadas --}}
+        <div id="linkedAccountsList" style="flex: 1; padding: 10px 0;">
+            {{-- Conta atual (sempre no topo) --}}
+            <div style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: #111;">
+                <div style="position: relative;">
+                    <img src="{{ Auth::user()->profile->avatarUrl() }}" style="width: 44px; height: 44px; border-radius: 50%; object-fit: cover;">
+                    {{-- Bolinha azul indicando conta ativa --}}
+                    <div style="position: absolute; bottom: 0; right: 0; width: 14px; height: 14px; background: #3897f0; border-radius: 50%; border: 2px solid #000;"></div>
+                </div>
+                <div>
+                    <div style="font-size: 14px; font-weight: 700; color: #fff;">{{ Auth::user()->username }}</div>
+                    <div style="font-size: 12px; color: #3897f0;">Conta ativa</div>
+                </div>
+            </div>
+ 
+            {{-- Contas vinculadas (carregadas via JS) --}}
+            <div id="otherAccountsList" style="padding: 5px 0;">
+                <div style="text-align: center; padding: 20px; color: #555; font-size: 13px;">
+                    <i class="fas fa-spinner fa-spin"></i> Carregando contas...
+                </div>
+            </div>
+        </div>
+ 
+        {{-- Botão Adicionar Conta --}}
+        <div style="border-top: 1px solid #262626; padding: 16px;">
+            <a href="/logout?linking=1" 
+               onclick="event.preventDefault(); addAccount();"
+               style="display: flex; align-items: center; gap: 12px; text-decoration: none; color: #fff; padding: 10px 0;">
+                <div style="width: 44px; height: 44px; border-radius: 50%; border: 1px dashed #555; display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-plus" style="color: #fff; font-size: 16px;"></i>
+                </div>
+                <span style="font-size: 14px; font-weight: 600;">Adicionar conta</span>
+            </a>
+        </div>
+ 
     </div>
 </div>
 
@@ -317,6 +381,82 @@
         .catch(err => {
             console.error(err);
             alert('Erro de conexão.');
+
+         function openAccountMenu() {
+        const drawer = document.getElementById('accountMenuDrawer');
+        drawer.style.display = 'block';
+        loadLinkedAccounts();
+    }
+ 
+    function closeAccountMenu() {
+        document.getElementById('accountMenuDrawer').style.display = 'none';
+    }
+ 
+    function loadLinkedAccounts() {
+        fetch('/i/rpgram/linked-accounts')
+            .then(r => r.json())
+            .then(accounts => {
+                const container = document.getElementById('otherAccountsList');
+ 
+                if (accounts.length === 0) {
+                    container.innerHTML = '<div style="text-align: center; padding: 20px; color: #555; font-size: 13px;">Nenhuma conta vinculada ainda.<br>Clique em "Adicionar conta" para começar.</div>';
+                    return;
+                }
+ 
+                container.innerHTML = accounts.map(acc => `
+                    <div style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; cursor: pointer; border-bottom: 1px solid #111;"
+                         onclick="switchToAccount('${acc.switch_token}')">
+                        <img src="${acc.avatar}" style="width: 44px; height: 44px; border-radius: 50%; object-fit: cover;">
+                        <div style="flex: 1;">
+                            <div style="font-size: 14px; font-weight: 600; color: #fff;">@${acc.username}</div>
+                        </div>
+                        <button onclick="event.stopPropagation(); unlinkAccount(${acc.id}, this)" 
+                                style="background: transparent; border: none; color: #555; font-size: 16px; cursor: pointer; padding: 4px 8px;"
+                                title="Remover da lista">
+                            &times;
+                        </button>
+                    </div>
+                `).join('');
+            })
+            .catch(() => {
+                document.getElementById('otherAccountsList').innerHTML = 
+                    '<div style="text-align: center; padding: 20px; color: #ed4956; font-size: 13px;">Erro ao carregar contas.</div>';
+            });
+    }
+ 
+    function switchToAccount(token) {
+        window.location.href = '/i/rpgram/switch-account/' + token;
+    }
+ 
+    function unlinkAccount(userId, btn) {
+        if (!confirm('Remover esta conta da lista?')) return;
+ 
+        fetch('/i/rpgram/linked-accounts/' + userId, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+            }
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                // Remove o item da lista visualmente
+                btn.closest('div[style*="padding: 12px 16px"]').remove();
+        });
+    }
+ 
+    function addAccount() {
+        // Faz logout sinalizando que é para vincular uma nova conta
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '/logout';
+        form.innerHTML = `
+            <input type="hidden" name="_token" value="${document.querySelector('meta[name="csrf-token"]').content}">
+            <input type="hidden" name="linking" value="1">
+        `;
+        document.body.appendChild(form);
+        form.submit();
+    }       
         });
     }
 </script>
