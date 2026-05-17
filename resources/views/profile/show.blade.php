@@ -9,12 +9,20 @@
 
         <!-- BOTÃO DE TROCAR CONTAS (absoluto, não mexe no layout) -->
         @if(Auth::check() && Auth::id() == $profile->user_id)
-        <button onclick="openAccountMenu()" style="background: transparent; border: none; cursor: pointer; padding: 4px;">
+        <button onclick="openAccountMenu()"
+            style="
+                position: absolute;
+                right: 16px;
+                top: 50%;
+                transform: translateY(-50%);
+                background: transparent;
+                border: none;
+                cursor: pointer;
+                padding: 4px;
+            ">
             <i class="fas fa-bars" style="color: #fff; font-size: 20px;"></i>
         </button>
-        @else
-        <span style="width: 24px;"></span>
-        @endif
+    @endif
     </nav>
 
     <!-- Cabeçalho Principal -->
