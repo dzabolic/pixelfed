@@ -24,27 +24,29 @@
 
                         <div class="form-group row mb-0">
 
-                            <div class="col-md-12">
-                                <label for="email" class="small font-weight-bold text-muted mb-0">{{__("auth.emailAddress")}}</label>
-                                <input id="login" type="text" name="login"
-       class="form-control{{ $errors->has('login') ? ' is-invalid' : '' }}"
-       value="{{ old('login') }}"
-       placeholder="Email or username"
-       required autofocus>
+<div class="col-md-12">
+    <label for="login" class="small font-weight-bold text-muted mb-0">
+        Username
+    </label>
 
-                                @if ($errors->has('email'))
-                                    <span class="invalid-feedback">
-                                        <strong>{{ $errors->first('email') }}</strong>
-                                    </span>
-                                @endif
+    <input id="login" type="text" name="login"
+        class="form-control{{ $errors->has('login') ? ' is-invalid' : '' }}"
+        value="{{ old('login') }}"
+        placeholder="username"
+        required autofocus>
 
-                                <div class="help-text small text-right mb-0">
-                                    <a href="{{ route('email.forgot') }}" class="small text-muted font-weight-bold">
-                                        {{ __('Forgot Email') }}
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
+    @if ($errors->has('login'))
+        <span class="invalid-feedback">
+            <strong>{{ $errors->first('login') }}</strong>
+        </span>
+    @endif
+
+    <div class="help-text small text-right mb-0">
+        <a href="{{ route('email.forgot') }}" class="small text-muted font-weight-bold">
+            {{ __('Forgot account') }}
+        </a>
+    </div>
+</div>
 
                         <div class="form-group row mb-0">
 
@@ -148,7 +150,7 @@ document.addEventListener("DOMContentLoaded", function() {
         return urlParams.get(name);
     }
 
-    const login = getQueryParam('login') || getQueryParam('email');
+    const login = getQueryParam('login') || getQueryParam('username');
 
     if (login) {
         const input = document.getElementById('login');
