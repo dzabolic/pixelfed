@@ -26,7 +26,11 @@
 
                             <div class="col-md-12">
                                 <label for="email" class="small font-weight-bold text-muted mb-0">{{__("auth.emailAddress")}}</label>
-                                <input id="email" type="email" class="form-control{{ $errors->has('email') ? ' is-invalid' : '' }}" name="email" value="{{ old('email') }}" placeholder="{{__('Email')}}" required autofocus>
+                                <input id="login" type="text" name="login"
+       class="form-control{{ $errors->has('login') ? ' is-invalid' : '' }}"
+       value="{{ old('login') }}"
+       placeholder="Email or username"
+       required autofocus>
 
                                 @if ($errors->has('email'))
                                     <span class="invalid-feedback">
@@ -143,11 +147,14 @@ document.addEventListener("DOMContentLoaded", function() {
         const urlParams = new URLSearchParams(window.location.search);
         return urlParams.get(name);
     }
-    const email = getQueryParam('email');
-    if (email) {
-        const emailInput = document.getElementById('email');
-        if (emailInput) {
-            emailInput.value = email;
+
+    const login = getQueryParam('login') || getQueryParam('email');
+
+    if (login) {
+        const input = document.getElementById('login');
+        if (input) {
+            input.value = login;
+
             const passwordInput = document.getElementById('password');
             if (passwordInput) {
                 passwordInput.focus();
