@@ -57,16 +57,11 @@ class LoginController extends Controller
 
     protected function credentials(Request $request)
     {
-        $login = $request->input('username');
- 
-        // Detecta se é email ou username
-        $field = filter_var($login, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
- 
     return [
-        $field     => $login,
+        'username' => $request->input('username'),
         'password' => $request->input('password'),
-        ];
-    }
+    ];
+}
  
 
     public function showLoginForm()
@@ -90,10 +85,10 @@ class LoginController extends Controller
             abort_if(BouncerService::checkIp($request->ip()), 404);
         }
 
-        $rules = [
-            $this->username() => 'required|email',
-            'password' => 'required|string|min:6',
-        ];
+$rules = [
+    'username' => 'required|string',
+    'password' => 'required|string|min:6',
+];
         $messages = [];
 
         if (
