@@ -126,6 +126,7 @@ class StoryController extends StoryComposeController
 
         $stories = Story::whereProfileId($profile->id)
             ->whereActive(true)
+            ->where('expires_at', '>', now())
             ->orderBy('expires_at')
             ->get()
             ->map(function ($s, $k) use ($authed) {
@@ -246,16 +247,15 @@ public function show(Request $request, $username, $id)
 {
     abort_if(!(bool) config_cache('instance.stories.enabled'), 404);
 
-    // CORRIGIDO: Busca o story mesmo que esteja inativo (archived)
-    // para permitir que o dono veja e adicione aos destaques
     $story = Story::with(['profile.user', 'views.profile'])
         ->findOrFail($id);
 
-    // Se não for o dono, exige que o story ainda esteja ativo
     $isOwner = Auth::check() && Auth::user() &&
                Auth::id() == $story->profile->user_id;
 
-    if (!$isOwner && !$story->active) {
+    // Permite ver se: é o dono, ou o story ainda está ativo, ou vem de um destaque
+    $isHighlight = $request->has('highlight');
+    if (!$isOwner && !$story->active && !$isHighlight) {
         abort(404);
     }
 
