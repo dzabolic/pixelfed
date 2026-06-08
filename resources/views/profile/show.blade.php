@@ -44,7 +44,6 @@
                     <a href="/stories/{{ $profile->username }}" style="display: block; width: 86px; height: 86px; border-radius: 50%; padding: 2px; text-decoration: none;
                         background: {{ $storiesSeen
                             ? 'conic-gradient(#555 0%, #555 100%)'
-
                             : 'linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888)' }};">
                         <div style="width: 100%; height: 100%; border-radius: 50%; border: 3px solid #000; overflow: hidden;">
                             <img src="{{ $profile->avatarUrl() }}" style="width: 100%; height: 100%; object-fit: cover;">
@@ -85,7 +84,6 @@
             @if(Auth::check() && Auth::id() == $profile->user_id)
                 <a href="{{ route('settings') }}" style="flex: 1; background: #262626; color: #fff; text-align: center; padding: 7px 0; border-radius: 8px; font-size: 13px; font-weight: 600; text-decoration: none;">Editar perfil</a>
                 <button style="flex: 1; background: #262626; color: #fff; text-align: center; padding: 7px 0; border-radius: 8px; font-size: 13px; font-weight: 600; border: none;">Compartilhar</button>
-
             @endif
         </div>
     </header>
@@ -124,7 +122,6 @@
                     <div id="coverPreview" style="width: 80px; height: 80px; border-radius: 50%; border: 1px dashed #444; display: flex; align-items: center; justify-content: center; background: #1a1a1a; overflow: hidden; cursor: pointer;">
                         <i class="fas fa-camera" style="color: #8e8e8e; font-size: 20px;"></i>
                     </div>
-
                     <input type="file" id="coverInput" style="display: none;" accept="image/*" onchange="previewImage(this)">
                 </div>
                 <input type="text" id="highlightName" placeholder="Nome do destaque" style="width: 100%; background: #000; border: 1px solid #333; color: #fff; padding: 10px; border-radius: 8px; font-size: 14px; outline: none; text-align: center;">
@@ -134,7 +131,11 @@
             <h4 style="font-size: 13px; color: #a8a8a8; margin-bottom: 15px;">Selecionar Stories do Arquivo</h4>
 
             @php
-                $myStories = \App\Story::whereProfileId($profile->id)->latest()->get();
+                // Para destaques, mostramos TODOS os stories do arquivo (ativos e expirados)
+                // O usuário deve poder selecionar qualquer story que já postou
+                $myStories = \App\Story::whereProfileId($profile->id)
+                    ->latest()
+                    ->get();
             @endphp
             <div id="storyArchive" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; max-height: 250px; overflow-y: auto; padding-right: 5px;">
                 @forelse($myStories as $story)
@@ -159,7 +160,6 @@
     <!-- ===== MODAL: OPÇÕES DO DESTAQUE ===== -->
     <div id="highlightOptionsModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; align-items: flex-end; justify-content: center;">
         <div style="background: #1c1c1e; width: 100%; max-width: 400px; border-radius: 14px 14px 0 0; overflow: hidden; margin: 0 auto;">
-
             <div style="padding: 16px; text-align: center; border-bottom: 1px solid #2c2c2e;">
                 <span id="highlightOptionsTitle" style="font-size: 13px; color: #8e8e8e; font-weight: 600;"></span>
             </div>
@@ -198,7 +198,6 @@
         @forelse($statuses as $status)
             @php
                 $media = $status->media->first();
-
                 $thumb = $media
                     ? ($media->thumbnail_url ?? $media->cdn_url ?? url(\Storage::url($media->media_path)))
                     : '';
@@ -238,7 +237,6 @@
                 <p>Nenhum vídeo ainda.</p>
             </div>
         @endforelse
-
     </div>
 
     <!-- Reposts (placeholder) -->
@@ -281,7 +279,6 @@
  
             {{-- Contas vinculadas (carregadas via JS) --}}
             <div id="otherAccountsList" style="padding: 5px 0;">
-
                 <div style="text-align: center; padding: 20px; color: #555; font-size: 13px;">
                     <i class="fas fa-spinner fa-spin"></i> Carregando contas...
                 </div>
@@ -334,7 +331,6 @@
             check.style.display = 'none';
             img.style.opacity   = '0.6';
             el.style.border     = 'none';
-
         }
     }
 
@@ -387,7 +383,6 @@
 
     function closeOptionsModal() {
         document.getElementById('highlightOptionsModal').style.display = 'none';
-
         activeHighlightId = null;
     }
 
@@ -440,7 +435,6 @@
         .then(r => r.json())
         .then(data => {
             if (data.success) {
-
                 alert(isEdit ? 'Destaque atualizado!' : 'Destaque criado com sucesso!');
                 location.reload();
             } else {
@@ -485,15 +479,23 @@
     }
  
     function loadLinkedAccounts() {
-        fetch('/i/rpgram/linked-accounts')
-            .then(r => r.json())
+        fetch('/i/rpgram/linked-accounts', {
+            credentials: 'same-origin',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                'Accept': 'application/json'
+            }
+        })
+            .then(r => {
+                if (!r.ok) throw new Error('HTTP ' + r.status);
+                return r.json();
+            })
             .then(accounts => {
                 const container = document.getElementById('otherAccountsList');
  
                 if (accounts.length === 0) {
                     container.innerHTML = '<div style="text-align: center; padding: 20px; color: #555; font-size: 13px;">Nenhuma conta vinculada ainda.<br>Clique em "Adicionar conta" para começar.</div>';
                     return;
-
                 }
  
                 container.innerHTML = accounts.map(acc => `
@@ -511,7 +513,8 @@
                     </div>
                 `).join('');
             })
-            .catch(() => {
+            .catch(err => {
+                console.error('Erro ao carregar contas:', err);
                 document.getElementById('otherAccountsList').innerHTML = 
                     '<div style="text-align: center; padding: 20px; color: #ed4956; font-size: 13px;">Erro ao carregar contas.</div>';
             });
@@ -542,7 +545,6 @@
     function addAccount() {
         // Faz logout sinalizando que é para vincular uma nova conta
         const form = document.createElement('form');
-
         form.method = 'POST';
         form.action = '/logout';
         form.innerHTML = `
