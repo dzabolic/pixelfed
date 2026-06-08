@@ -309,21 +309,7 @@ Route::domain(config('pixelfed.domain.app'))->middleware(['validemail', 'twofact
             Route::post('request/permanent', 'SettingsController@removeAccountPermanentSubmit');
         });
 
-  Route::prefix('i/rpgram')->middleware('auth')->group(function () {
 
-    // ── Destaques ──
-    Route::post('highlights/create',        'HighlightController@create');
-    Route::get('highlights/{id}/data',      'HighlightController@data');
-    Route::post('highlights/{id}/update',   'HighlightController@update');
-    Route::delete('highlights/{id}',        'HighlightController@destroy');
-    Route::get('highlights/{id}/view',      'HighlightController@view');
- 
-    // ── Troca de contas ──
-    Route::get('linked-accounts',                   'LinkedAccountController@index');
-    Route::get('switch-account/{token}',            'LinkedAccountController@switchAccount');
-    Route::delete('linked-accounts/{linkedUserId}', 'LinkedAccountController@unlink');
- 
-});
         
         Route::group(['prefix' => 'security', 'middleware' => 'dangerzone'], function () {
             Route::get(
@@ -529,6 +515,23 @@ Route::domain(config('pixelfed.domain.app'))->middleware(['validemail', 'twofact
     });
     Route::get('g/{hid}', 'GroupController@groupShortLinkRedirect');
 
+    // ── RPGram: Destaques e Troca de Contas ──
+    Route::prefix('i/rpgram')->middleware('auth')->group(function () {
+
+        // Destaques
+        Route::post('highlights/create',        'HighlightController@create');
+        Route::get('highlights/{id}/data',      'HighlightController@data');
+        Route::post('highlights/{id}/update',   'HighlightController@update');
+        Route::delete('highlights/{id}',        'HighlightController@destroy');
+        Route::get('highlights/{id}/view',      'HighlightController@view');
+
+        // Troca de contas
+        Route::get('linked-accounts',                   'LinkedAccountController@index');
+        Route::get('switch-account/{token}',            'LinkedAccountController@switchAccount');
+        Route::delete('linked-accounts/{linkedUserId}', 'LinkedAccountController@unlink');
+
+    });
+
     Route::get('stories/{username}', 'ProfileController@stories');
     Route::get('p/{id}', 'StatusController@shortcodeRedirect');
     Route::get('c/{collection}', 'CollectionController@show');
@@ -546,4 +549,3 @@ Route::domain(config('pixelfed.domain.app'))->middleware(['validemail', 'twofact
     Route::get('stories/{username}/{id}', 'StoryController@show')->name('story.show');
     
 });
-
