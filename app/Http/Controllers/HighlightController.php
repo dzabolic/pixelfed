@@ -114,14 +114,19 @@ class HighlightController extends Controller
             $q->orderBy('highlight_story.id', 'asc');
         }])->findOrFail($id);
 
+        // Qualquer usuário autenticado pode ver os stories de um destaque
+        // (não exige que o story ainda esteja ativo, pois destaques preservam stories expirados)
         $firstStory = $highlight->stories->first();
 
         if (! $firstStory) {
-            return back()->with('error', 'Este destaque não tem stories.');
+            abort(404, 'Este destaque não tem stories.');
         }
 
         $username = $firstStory->profile->username;
 
-        return redirect("/stories/{$username}/{$firstStory->id}");
+        // Passa os IDs de todos os stories do destaque para exibição sequencial
+        $storyIds = $highlight->stories->pluck('id')->implode(',');
+
+        return redirect("/stories/{$username}/{$firstStory->id}?highlight={$highlight->id}&ids={$storyIds}");
     }
 }
