@@ -2,14 +2,15 @@
 
 namespace App\Http\Controllers\Auth;
 
+
 use App\AccountLog;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\LinkedAccountController;
+use Illuminate\Foundation\Auth\AuthenticatesUsers;
+use Illuminate\Http\Request;
 use App\Models\LinkedAccount;
 use App\Services\BouncerService;
 use App\User;
-use Illuminate\Foundation\Auth\AuthenticatesUsers;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -99,19 +100,20 @@ class LoginController extends Controller
      */
     protected function authenticated(Request $request, $user)
     {
-        $previousUserId = $request->session()->get('rpgram_previous_user_id');
-
-        if ($previousUserId && $previousUserId !== $user->id) {
-            $previousUser = User::find($previousUserId);
+        // Se havia uma sessão anterior (vinda do fluxo "adicionar conta"),
+        // recuperamos o ID do usuário anterior que ficou salvo na sessão
+        $previousUserId = $request->session()->pull('previous_user_id');
+ 
+        if ($previousUserId) {
+            $previousUser = \App\User::find($previousUserId);
             if ($previousUser) {
                 LinkedAccountController::linkAfterLogin($previousUser, $user);
             }
         }
-
-        $request->session()->put('rpgram_previous_user_id', $user->id);
-
+ 
         return redirect()->intended($this->redirectPath());
     }
+}
 
     protected function loggedOut(Request $request)
     {
