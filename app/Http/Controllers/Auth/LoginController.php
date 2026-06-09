@@ -113,7 +113,6 @@ class LoginController extends Controller
  
         return redirect()->intended($this->redirectPath());
     }
-}
 
     protected function loggedOut(Request $request)
     {
