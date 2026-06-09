@@ -87,11 +87,15 @@ class StoryService
 
     public static function latest($pid)
     {
-        return Cache::remember(self::STORY_KEY.'latest:pid-'.$pid, 3600, function () use ($pid) {
-            return Story::whereProfileId($pid)
+        // TTL curto (60s) para refletir rapidamente quando um story expira
+        return Cache::remember(self::STORY_KEY.'latest:pid-'.$pid, 60, function () use ($pid) {
+            $story = Story::whereProfileId($pid)
+                ->whereActive(true)
+                ->where('expires_at', '>', now())
                 ->latest()
-                ->first()
-                ->id;
+                ->first();
+
+            return $story ? $story->id : null;
         });
     }
 
